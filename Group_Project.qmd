@@ -3,3 +3,21 @@ title: "Group Project"
 author: "Kenza Redwane & Julie Decraemer"
 format: html
 ---
+
+#### Downlowding the Datsets
+```{r}
+library(here)
+here::i_am("DM-Project-4.Rproj")
+```
+```{r}
+library(vroom)
+drug_consumption <- vroom(here("drug-consumption.csv"))
+```
+```{r}
+library(vroom)
+lethal_overdoses <- vroom(here("lethal-overdoses.csv"))
+```
+```{r}
+library(readxl)
+education <- read_excel("education.xlsx")
+```
