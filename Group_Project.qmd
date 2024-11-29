@@ -1,23 +1,68 @@
 ---
 title: "Group Project"
 author: "Kenza Redwane & Julie Decraemer"
-format: html
+format: 
+  html:
+    code-fold: true
 ---
 
-#### Downlowding the Datsets
 ```{r}
-library(here)
+#| message: false
 here::i_am("DM-Project-4.Rproj")
-```
-```{r}
+library(here)
 library(vroom)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+## Data import
+```{r}
+#| message: false
 drug_consumption <- vroom(here("drug-consumption.csv"))
 ```
+
 ```{r}
-library(vroom)
+#| message: false
 lethal_overdoses <- vroom(here("lethal-overdoses.csv"))
 ```
+
 ```{r}
-library(readxl)
-education <- read_excel("education.xlsx")
+colnames(education)
 ```
+
+
+```{r}
+#| message: false
+library(tidyverse)
+library(readr)
+education <- vroom(here("education.csv"))
+
+education_clean <- education %>%
+  slice(8:(n() - 3))%>%  
+
+select(-c(3, 4, 6, 7, 9, 10, 12, 13, 15, 16, 18, 19, 21, 22, 24, 25, 
+            27, 28, 30, 31, 33, 34, 36, 37, 39, 40, 42, 43)) %>%
+rename(
+  states = "Table 104.80. Percentage of persons 18 to 24 years old and age 25 and over. by educational attainment and state or jurisdiction: 2012 and 2022",
+  less24years_highschool_2012 = "...2",
+    less24years_highschool_2022 = "...5",
+    years25_LessHighSchool_2012 = "...8",
+    years25_LessHighSchool_2022 = "...11",
+    years25_moreHighSchool_2012 = "...14",
+    years25_moreHighSchool_2022 = "...17",
+    years25_bachelor_higher_2012 = "...20",
+    years25_bachelor_higher_2022 = "...23",
+    years25_bachelor_2012 = "...26",
+    years25_bachelor_2022 = "...29",
+    years25_graduate_2012 = "...32",
+    years25_graduate_2022 = "...35",
+    years25_college_2012 = "...38",
+    years25_college_2022 = "...41"
+  ) 
+
+glimpse(education_clean)
+```
+
+
+
+
