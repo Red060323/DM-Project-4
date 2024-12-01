@@ -15,10 +15,10 @@ theme_set(theme_bw())
 ```
 
 ## Data import
-In the following three chunks of code we are reading the different csv files of our three datasets into different variables, respectively `drug_consumption`, `lethal_overdoses` and `education`.
+In the following three chunks of code we are reading the different csv files of our three datasets into different variables, respectively `drug_seizure`, `lethal_overdoses` and `education`.
 ```{r}
 #| message: false
-drug_consumption <- vroom(here("drug-consumption.csv"))
+drug_seizure <- vroom(here("drug-consumption.csv"))
 ```
 
 ```{r}
@@ -30,7 +30,7 @@ lethal_overdoses <- vroom(here("lethal-overdoses.csv"))
 education <- vroom(here("education.csv"))
 ```
 
-Just below, we implemented a first cleaning of the `education` variable, which we called `education_clean`. The goal was first to remove the empty columns and renaming the remaining ones for clarity and usability.
+Just below, we implemented a first cleaning of the `education` variable, which we called `education_preclean`. The goal was first to remove the empty columns, and renaming the remaining ones for clarity and usability.
 ```{r}
 #| message: false
 library(tidyverse)
@@ -70,21 +70,120 @@ caption {
 }
 </style>
 
-### Description of the files
+## Description of the files
 **Link to our github project:** <a href="https://github.com/Kenz203/DM-Project-4" target="_blank">DM-Project-4</a> <br>
 
-**1) Dataset about drug consumption in the United States** <br>
+**1) Dataset about drug seizures in the United States** <br>
 <a href="https://www.cbp.gov/document/stats/nationwide-drug-seizures" target="_blank">Link to the website of the dataset</a> <br>
-With this link you must be directed to the website of the *U.S. Customs and Border Protection*. Under the title "Dashboard dataset", you can click on the second file called "FY21 - FY24 Nationwide Drug Seizures" and it will download directly the file in csv.
+With this link you must be redirected to the website of the *U.S. Customs and Border Protection*. Under the title "Dashboard dataset", you can click on the second file called "FY21 - FY24 Nationwide Drug Seizures" and it will download directly the file in csv.
+```{r}
+summary_table_1<- tibble(
+  "  " = c(
+    "**Topic**",
+    "**Source information**",
+    "**Rows**",
+    "**Columns**",
+    "**Key Variables**",
+    "**Missing Values (%)**"
+  ),
+  " " = c(
+    "Dataset about the seizures of different drugs across the United States from 2021 to 2024.",
+    "The Nationwide Drug Seizures data was taken from the U.S. Customs and Border Protection. CBP is a federal agency under the Department of Homeland Security, it is responsible for  managing and making sure the nation's borders are secured, including land, sea, and air entry points. Its mission is to protect the United States from threats such as illegal immigration, smuggling, and terrorism while making trade and travel easy. CBP uses advanced technologies, intelligence-driven strategies, and highly trained employees to detect and prevent the trafficking of illegal drugs. The agency collaborates with domestic and international partners to try to destroy drug supply chains and criminal organizations. The dataset we chose includes statistics on the types, quantities, and locations of drugs seized by CBP. This data is regularly updated and reflects CBP's efforts in combating this challenge of drug smuggling.",
+    nrow(drug_seizure),
+    ncol(drug_seizure),
+    "For each year from 2021 to 2024 (subdivided by months) and for each state (identified with their offices), we have the quantity in lbs of drugs seized (such as Marijuana, Cocaine, Fentanyl, etc) as well as the number of seizure events, both of which we will use as indicators of the level of drugs consumption in each state.",
+    round(sum(is.na(drug_seizure)) / (nrow(drug_seizure) * ncol(drug_seizure)) * 100, 2)
+  )
+)
+
+kable(summary_table_1, caption = "Summary of the Drug Seizures Dataset:", escape = FALSE)
+```
+<br>
 
 **2) Dataset about drug overdose mortality in the United States** <br>
 <a href="https://www.cdc.gov/nchs/pressroom/sosmap/drug_poisoning_mortality/drug_poisoning.htm" target="_blank">Link to the website of the dataset</a> <br>
-Once you clicked on the link, you can go scroll down and you will find, below the table, a link to directly download the data det in CSV.
+Once you clicked on the link, you can scroll down and you will find, below the table, a link to directly download the data set in CSV.
+
+```{r}
+summary_table_2<- tibble(
+  "  " = c(
+    "**Topic**",
+    "**Source information**",
+    "**Rows**",
+    "**Columns**",
+    "**Key Variables**",
+    "**Missing Values (%)**"
+  ),
+  " " = c(
+    "Dataset about drug poisoning mortality rates across the United States from 1999 to 2022",
+    "We found the Drug Poisoning Mortality dataset on the Centers for Disease Control and Prevention (CDC) website. The CDC is a national public health agency under the Department of Health and Human Services. Its missions are to protect public health by conducting critical research, provide reliable health information, and manage health emergencies (for example, during the COVID-19 pandemic, the CDC played a huge role by coordinating the national response by providing guidelines for prevention, conducting research on the virus, distributing vaccines, and offering critical health data to inform public policy and protect communities). The agency works to prevent disease outbreaks, promote health equity, and advance the overall well-being of the population. This dataset highlights trends in drug-related deaths and helps policymakers, researchers, and public health officials address the growing opioid crisis and other drug-related challenges.",
+    nrow(lethal_overdoses),
+    ncol(lethal_overdoses),
+    "For each year from 1999 to 2022 and for each state, we have the overdose death rate as well as the the number of deaths per 100,000 total population.",
+    round(sum(is.na(lethal_overdoses)) / (nrow(lethal_overdoses) * ncol(lethal_overdoses)) * 100, 2)
+  )
+)
+
+kable(summary_table_2, caption = "Summary of the Drug Overdose Mortality Dataset:", escape = FALSE)
+```
+<br> 
 
 **3) Dataset about education levels accross the United States** <br>
 <a href="https://nces.ed.gov/programs/digest/d23/tables/dt23_104.80.asp" target="_blank">Link to  the dataset</a> <br>
 
 
+```{r}
+summary_table_3 <- tibble(
+  "  " = c(
+    "**Topic**",
+    "**Source information**",
+    "**Rows**",
+    "**Columns**",
+    "**Key Variables**",
+    "**Missing Values (%)**"
+  ),
+  " " = c(
+    "Dataset about educational attainment in the US (2012-2022)",
+    "The National Center for Education Statistics (NCES) is a federal agency that operates under the U.S. Department of Education. Its purpose is to gather, analyze, and share data about education across the United States, from early childhood to higher education. The NCES plays a critical role in providing accurate, reliable, and up-to-date information to help people better understand how the education system functions and how it affects students, teachers, and communities. One of the main goals of the NCES is to support decision-making by providing data that policymakers, educators, and researchers can use to improve education. Its work includes collecting statistics on topics such as student enrollment, academic performance, school funding, and teacher employment. This information helps government officials and school leaders make informed choices about funding allocation, program development, and education reforms. By publishing detailed reports and datasets, the NCES allows educators and researchers to analyze trends, identify gaps, and evaluate the fairness and efficiency of school systems. Its data also sheds light on important issues like whether public school funding is being used effectively and whether all students have equal access to educational resources. Through its efforts, the NCES helps improve the quality of education and ensures that learning opportunities are fair and accessible for everyone.",
+    nrow(education_clean),
+    ncol(education_clean),
+    "For each state, we have the proportion of people under 24 who were high school completers in years 2012 and 2022, the proportion of people of age 25+ who have not completed their secondary education, as well as those who have graduated from high school, those who got a bachelor's degree and those who got a graduate degree, all those both for the years 2012 and 2022.",
+    round(sum(is.na(education_clean)) / (nrow(education_clean) * ncol(education_clean)) * 100, 2)
+  )
+)
 
+kable(summary_table_3, caption = "Summary of the Education Dataset:", escape = FALSE)
+```
 
+## Data cleaning
+**The first steps of cleaning just below are done on the education data set**. We realized that the name of the column variables were not properly aligned with their respective values compared to the initial data set in xlsx format. Thus, we had to change them. After that, we removed column 12 since this was not useful for our analysis, the latest was about people who did associate degrees. The second step of cleaning on the education dataset was to remove the column that concerns the year 2012 since our analysis is focused on the year 2022 only.
+```{r}
+# Rename specific columns and remove column 12
+education_clean <- education_clean %>%
+  rename(
+    # Specify new names for the columns
+    `years25_atleast_highschool_2012` = 5,
+    `years25_total_bachelor+_2012` = 6,
+    `years25_bachelor_2012` = 7,
+    `years25_graduate_2012` = 8,
+    `years25_LessHighSchool_2022` = 9,
+    `years25_atleast_highschool_2022` = 10,
+    `years25_onlyhighschool_2022` = 11,
+    `useless` = 12,
+    `years25_total_bachelor+_2022` = 13,
+    `years25_bachelor_2022` = 14,
+    `years25_graduate_2022` = 15
+  )
+
+# Remove useless columns as well as columns on the year 2012
+education_clean <- education_clean %>%
+  select(-useless, -matches("2012"))
+
+# Sample of the cleaned education data set
+kable(
+  head(education_clean, 5),
+  caption = "Summary of the cleaned education data set read as a variable: ",
+  escape = FALSE
+)
+```
 
