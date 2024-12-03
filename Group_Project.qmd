@@ -156,6 +156,7 @@ kable(summary_table_3, caption = "Summary of the Education Dataset:", escape = F
 ```
 
 ## Data cleaning
+
 **The first steps of cleaning just below are done on the education data set**. We realized that the name of the column variables were not properly aligned with their respective values compared to the initial data set in xlsx format. Thus, we had to change them. After that, we removed column 12 since this was not useful for our analysis, the latest was about people who did associate degrees. The second step of cleaning on the education dataset was to remove the column that concerns the year 2012 since our analysis is focused on the year 2022 only.
 ```{r}
 # Rename specific columns and remove column 12
@@ -185,5 +186,84 @@ kable(
   caption = "Summary of the cleaned education data set read as a variable: ",
   escape = FALSE
 )
+```
+In the following, we are going to proceed to the cleaning of our dataset that we've already imported. First, in the both datasets `both drug_seizure` as well as `lethal_overdoses` we kept 2022 as the only year which we will focus our analysis, thus we removed all other years.
+
+```{r}
+#| message: false
+drug_seizure %>%
+  filter(FY == 2022)%>%
+  rename(states = `Area of Responsibility`)
+```
+
+```{r}
+#| message: false
+lethal_overdoses %>%
+  filter(YEAR == 2022)%>%
+  rename(states = STATE)
+```
+## Graphical representation:
+
+Let's visualize the number of seizures per drug.
+
+```{r}
+library(ggplot2)
+library(plotly)
+
+# Exemple : Résumé des saisies par type de drogue
+drug_summary <- drug_seizure %>%
+  group_by(`Drug Type`) %>%
+  summarise(Count = n())
+
+# Création du graphique
+drug_plot <- ggplot(drug_summary, aes(
+  x = reorder(`Drug Type`, Count),
+  y = Count,
+  text = paste("Drug Type:", `Drug Type`, "<br>Count:", Count)
+)) +
+  geom_col(fill = "darkorange", alpha = 0.8) +
+  coord_flip() +
+  labs(
+    title = "Number of seizures per drug",
+    x = "Type of drug",
+    y = "Number of seizure"
+  ) +
+  theme_minimal()
+
+# Convertir en graphique interactif
+ggplotly(drug_plot, tooltip = "text")
+
+```
+
+Option 2:  Visualization of numberof seizures for Fentanyl only, per state :
+
+```{r}
+library(ggplot2)
+library(plotly)
+
+# Filtrer uniquement les saisies de fentanyl
+fentanyl_data <- drug_seizure %>%
+  filter(`Drug Type` == "Fentanyl") %>%  # Filtrer pour Fentanyl
+  group_by(`Area of Responsibility`) %>%  # Grouper par région
+  summarise(Fentanyl_Seizures = n())  # Compter les saisies
+
+# Création du graphique interactif avec ggplot2
+fentanyl_plot <- ggplot(fentanyl_data, aes(
+  x = reorder(`Area of Responsibility`, Fentanyl_Seizures),  # Réorganiser par nombre de saisies
+  y = Fentanyl_Seizures,
+  text = paste("State:", `Area of Responsibility`, "<br>Seizures of Fentanyl:", Fentanyl_Seizures)
+)) +
+  geom_col(fill = "red", alpha = 0.8) +
+  coord_flip() +
+  labs(
+    title = "Number of seizures of Fentanyl",
+    x = "State",
+    y = "Number of seizures"
+  ) +
+  theme_minimal()
+
+# Convertir en graphique interactif avec plotly
+ggplotly(fentanyl_plot, tooltip = "text")
+
 ```
 
