@@ -187,13 +187,18 @@ kable(
   escape = FALSE
 )
 ```
-In the following, we are going to proceed to the cleaning of our dataset that we've already imported. First, in the both datasets `both drug_seizure` as well as `lethal_overdoses` we kept 2022 as the only year which we will focus our analysis, thus we removed all other years.
+In the following, we are going to proceed to the cleaning of the dataset about lethal overdose and the one about drug seizure that we've already imported. First, in the both datasets, we kept 2022 as this is the only year which we will focus our analysis on, thus we removed all other years.
 
 ```{r}
 #| message: false
 drug_seizure %>%
   filter(FY == 2022)%>%
-  rename(states = `Area of Responsibility`)
+  rename(states = `Area of Responsibility`) 
+kable(
+  head(drug_seizure, 5),
+  caption = "Summary of the cleaned drug seizure data set read as a variable: ",
+  escape = FALSE
+)
 ```
 
 ```{r}
@@ -201,8 +206,14 @@ drug_seizure %>%
 lethal_overdoses %>%
   filter(YEAR == 2022)%>%
   rename(states = STATE)
+
+kable(
+  head(lethal_overdoses, 5),
+  caption = "Summary of the cleaned lethal overdoses data set read as a variable: ",
+  escape = FALSE
+)
 ```
-## Graphical representation:
+## Graphical representations
 
 Let's visualize the number of seizures per drug.
 
@@ -210,12 +221,12 @@ Let's visualize the number of seizures per drug.
 library(ggplot2)
 library(plotly)
 
-# Exemple : Résumé des saisies par type de drogue
+# Example: summary of the seizures by drug type
 drug_summary <- drug_seizure %>%
   group_by(`Drug Type`) %>%
   summarise(Count = n())
 
-# Création du graphique
+# Creation of the graphic
 drug_plot <- ggplot(drug_summary, aes(
   x = reorder(`Drug Type`, Count),
   y = Count,
