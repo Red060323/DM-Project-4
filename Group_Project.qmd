@@ -183,15 +183,39 @@ education_clean <- education_clean %>%
 # Sample of the cleaned education data set
 kable(
   head(education_clean, 5),
-  caption = "Summary of the cleaned education data set read as a variable: ",
   escape = FALSE
 )
 ```
+Changing the names of the states by their codes in the education dataset:
+```{r}
+state_name <- unique(education_clean$states) # Extraction of unique states' names
+
+state_codes <- data.frame(
+  state_name = state_name,
+  state_code = c("USA", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", 
+                 "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
+                 "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", 
+                 "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", 
+                 "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "OTHER JURISDICTIONS", "PR")
+)
+
+education_clean <- education_clean %>%
+  left_join(state_codes, by = c("states" = "state_name")) %>%  # Jointure par le nom des états
+  mutate(states = state_code) %>%  # Remplacer les noms par les codes
+  select(-state_code)  # Supprimer la colonne temporaire
+
+kable(
+  head(education_clean, 5),
+  escape = FALSE
+)
+
+```
+
 In the following, we are going to proceed to the cleaning of the dataset about lethal overdose and the one about drug seizure that we've already imported. First, in the both datasets, we kept 2022 as this is the only year which we will focus our analysis on, thus we removed all other years.
 
 ```{r}
 #| message: false
-drug_seizure %>%
+drug_seizure <- drug_seizure %>%
   filter(FY == 2022)%>%
   rename(states = `Area of Responsibility`) 
 kable(
@@ -203,7 +227,7 @@ kable(
 
 ```{r}
 #| message: false
-lethal_overdoses %>%
+lethal_overdoses <- lethal_overdoses %>%
   filter(YEAR == 2022)%>%
   rename(states = STATE)
 
@@ -255,14 +279,14 @@ library(plotly)
 # Filtrer uniquement les saisies de fentanyl
 fentanyl_data <- drug_seizure %>%
   filter(`Drug Type` == "Fentanyl") %>%  # Filtrer pour Fentanyl
-  group_by(`Area of Responsibility`) %>%  # Grouper par région
+  group_by(`states`) %>%  # Grouper par région
   summarise(Fentanyl_Seizures = n())  # Compter les saisies
 
 # Création du graphique interactif avec ggplot2
 fentanyl_plot <- ggplot(fentanyl_data, aes(
-  x = reorder(`Area of Responsibility`, Fentanyl_Seizures),  # Réorganiser par nombre de saisies
+  x = reorder(`states`, Fentanyl_Seizures),  # Réorganiser par nombre de saisies
   y = Fentanyl_Seizures,
-  text = paste("State:", `Area of Responsibility`, "<br>Seizures of Fentanyl:", Fentanyl_Seizures)
+  text = paste("State:", `states`, "<br>Seizures of Fentanyl:", Fentanyl_Seizures)
 )) +
   geom_col(fill = "red", alpha = 0.8) +
   coord_flip() +
