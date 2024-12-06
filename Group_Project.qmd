@@ -5,6 +5,7 @@ format:
   html:
     code-fold: true
 ---
+
 ```{r}
 #| message: false
 here::i_am("DM-Project-4.Rproj")
@@ -15,7 +16,9 @@ theme_set(theme_bw())
 ```
 
 ## Data import
+
 In the following three chunks of code we are reading the different csv files of our three datasets into different variables, respectively `drug_seizure`, `lethal_overdoses` and `education`.
+
 ```{r}
 #| message: false
 drug_seizure <- vroom(here("drug-consumption.csv"))
@@ -25,12 +28,14 @@ drug_seizure <- vroom(here("drug-consumption.csv"))
 #| message: false
 lethal_overdoses <- vroom(here("lethal-overdoses.csv"))
 ```
+
 ```{r}
 #| message: false
 education <- vroom(here("education.csv"))
 ```
 
 Just below, we implemented a first cleaning of the `education` variable, which we called `education_preclean`. The goal was first to remove the empty columns, and renaming the remaining ones for clarity and usability.
+
 ```{r}
 #| message: false
 library(tidyverse)
@@ -64,18 +69,20 @@ rename(
 
 kable(education_clean %>% slice(1:5), caption = "Excerpt of the first 5 rows of education_clean")
 ```
+
+```{=html}
 <style>
 caption {
   text-align: left;
 }
 </style>
-
+```
 ## Description of the files
+
 **Link to our github project:** <a href="https://github.com/Kenz203/DM-Project-4" target="_blank">DM-Project-4</a> <br>
 
-**1) Dataset about drug seizures in the United States** <br>
-<a href="https://www.cbp.gov/document/stats/nationwide-drug-seizures" target="_blank">Link to the website of the dataset</a> <br>
-With this link you must be redirected to the website of the *U.S. Customs and Border Protection*. Under the title "Dashboard dataset", you can click on the second file called "FY21 - FY24 Nationwide Drug Seizures" and it will download directly the file in csv.
+**1) Dataset about drug seizures in the United States** <br> <a href="https://www.cbp.gov/document/stats/nationwide-drug-seizures" target="_blank">Link to the website of the dataset</a> <br> With this link you must be redirected to the website of the *U.S. Customs and Border Protection*. Under the title "Dashboard dataset", you can click on the second file called "FY21 - FY24 Nationwide Drug Seizures" and it will download directly the file in csv.
+
 ```{r}
 summary_table_1<- tibble(
   "  " = c(
@@ -98,11 +105,10 @@ summary_table_1<- tibble(
 
 kable(summary_table_1, caption = "Summary of the Drug Seizures Dataset:", escape = FALSE)
 ```
+
 <br>
 
-**2) Dataset about drug overdose mortality in the United States** <br>
-<a href="https://www.cdc.gov/nchs/pressroom/sosmap/drug_poisoning_mortality/drug_poisoning.htm" target="_blank">Link to the website of the dataset</a> <br>
-Once you clicked on the link, you can scroll down and you will find, below the table, a link to directly download the data set in CSV.
+**2) Dataset about drug overdose mortality in the United States** <br> <a href="https://www.cdc.gov/nchs/pressroom/sosmap/drug_poisoning_mortality/drug_poisoning.htm" target="_blank">Link to the website of the dataset</a> <br> Once you clicked on the link, you can scroll down and you will find, below the table, a link to directly download the data set in CSV.
 
 ```{r}
 summary_table_2<- tibble(
@@ -126,11 +132,10 @@ summary_table_2<- tibble(
 
 kable(summary_table_2, caption = "Summary of the Drug Overdose Mortality Dataset:", escape = FALSE)
 ```
-<br> 
 
-**3) Dataset about education levels accross the United States** <br>
-<a href="https://nces.ed.gov/programs/digest/d23/tables/dt23_104.80.asp" target="_blank">Link to  the dataset</a> <br>
+<br>
 
+**3) Dataset about education levels accross the United States** <br> <a href="https://nces.ed.gov/programs/digest/d23/tables/dt23_104.80.asp" target="_blank">Link to the dataset</a> <br>
 
 ```{r}
 summary_table_3 <- tibble(
@@ -158,6 +163,7 @@ kable(summary_table_3, caption = "Summary of the Education Dataset:", escape = F
 ## Data cleaning
 
 **The first steps of cleaning just below are done on the education data set**. We realized that the name of the column variables were not properly aligned with their respective values compared to the initial data set in xlsx format. Thus, we had to change them. After that, we removed column 12 since this was not useful for our analysis, the latest was about people who did associate degrees. The second step of cleaning on the education dataset was to remove the column that concerns the year 2012 since our analysis is focused on the year 2022 only.
+
 ```{r}
 # Rename specific columns and remove column 12
 education_clean <- education_clean %>%
@@ -186,7 +192,9 @@ kable(
   escape = FALSE
 )
 ```
+
 Changing the names of the states by their codes in the education dataset:
+
 ```{r}
 state_name <- unique(education_clean$states) # Extraction of unique states' names
 
@@ -237,9 +245,10 @@ kable(
   escape = FALSE
 )
 ```
+
 ## Graphical representations
 
-Let's visualize the number of seizures per drug.
+#### Figure 1: The number of seizures per drug in the USA.
 
 ```{r}
 library(ggplot2)
@@ -270,7 +279,7 @@ ggplotly(drug_plot, tooltip = "text")
 
 ```
 
-Option 2:  Visualization of numberof seizures for Fentanyl only, per state :
+#### Figure 2 : The number of seizures of Fentanyl only, per state in the USA.
 
 ```{r}
 library(ggplot2)
@@ -302,3 +311,14 @@ ggplotly(fentanyl_plot, tooltip = "text")
 
 ```
 
+#### Figure 3: The rate of overdoses per state during 2022.
+
+```{r}
+
+```
+
+#### Figure 4: 
+
+```{r}
+
+```
