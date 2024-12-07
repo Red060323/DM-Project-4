@@ -188,7 +188,7 @@ education_clean <- education_clean %>%
 
 # Sample of the cleaned education data set
 kable(
-  head(education_clean, 5),
+  head(education_clean, 3),
   escape = FALSE
 )
 ```
@@ -213,13 +213,13 @@ education_clean <- education_clean %>%
   select(-state_code)  # Supprimer la colonne temporaire
 
 kable(
-  head(education_clean, 5),
+  head(education_clean, 3),
   escape = FALSE
 )
 
 ```
 
-In the following, we are going to proceed to the cleaning of the dataset about lethal overdose and the one about drug seizure that we've already imported. First, in the both datasets, we kept 2022 as this is the only year which we will focus our analysis on, thus we removed all other years.
+In the following, we are going to proceed to the **cleaning of the data set about drug seizure** that we've already imported. First, we kept only 2022 as this is the only year which we will focus our analysis on, thus we removed all other years.
 
 ```{r}
 #| message: false
@@ -227,20 +227,50 @@ drug_seizure <- drug_seizure %>%
   filter(FY == 2022)%>%
   rename(states = `Area of Responsibility`) 
 kable(
-  head(drug_seizure, 5),
-  caption = "Summary of the cleaned drug seizure data set read as a variable: ",
+  head(drug_seizure, 3),
   escape = FALSE
 )
 ```
 
+Now, the goal is to change the values in the variable `states` of the drug seizures data set because here they are organized in offices.
+```{r}
+# Extract unique values from the 'states' column of the drug seizures data set
+offices_ds <- unique(drug_seizure$states)
+
+# Modifying the states values with the codes of the latest
+ds_offices_codes <- data.frame(
+  offices = offices_ds,
+  codes = c(
+    "GA", "MD", "IL", "TX", "CA", "FL", "LA", "NY", "INTL", "CA", "PR", "FL", 
+    "MA", "NY", "MI", "WA", "OR", "TX", "TX", "CA", "AZ", "FL", "PR", "WA", "NY", 
+    "MI", "ME", "WA", "VT", "TX", "TX", "CA", "TX", "TX", "TX", "CA", "AZ", "AZ", 
+    "MT", "ND", "LA"
+  )
+)
+
+# Column replacement
+drug_seizure <- drug_seizure %>%
+  left_join(ds_offices_codes, by = c("states" = "offices")) %>%  # Joining by 'offices'
+  mutate(states = ifelse(!is.na(codes), codes, states)) %>%
+  select(-codes)
+
+kable(
+  head(drug_seizure, 3),
+  escape = FALSE
+)
+```
+
+
+Below is the **cleaning of the lethal overdoses data set**. First of all, we filter in order to keep only the year 2022. then, we remove the column URL, which we won't use for our analysis.
 ```{r}
 #| message: false
 lethal_overdoses <- lethal_overdoses %>%
-  filter(YEAR == 2022)%>%
-  rename(states = STATE)
+  filter(YEAR == 2022) %>%  # Keep only data for the year 2022
+  rename(states = STATE) %>%  # Rename the 'STATE' column to 'states'
+  select(-URL)  # Remove the 'URL' column
 
 kable(
-  head(lethal_overdoses, 5),
+  head(lethal_overdoses, 3),
   caption = "Summary of the cleaned lethal overdoses data set read as a variable: ",
   escape = FALSE
 )
