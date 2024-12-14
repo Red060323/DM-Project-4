@@ -429,7 +429,11 @@ kable(
 
 ```
 
+<<<<<<< Updated upstream
 #### Figure 6: 
+=======
+#### Figure 4:
+>>>>>>> Stashed changes
 
 ```{r}
 
