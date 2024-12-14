@@ -67,7 +67,7 @@ rename(
     years25_college_2022 = "...41"
   ) 
 
-kable(education_clean %>% slice(1:5), caption = "Excerpt of the first 5 rows of education_clean")
+kable(education_clean %>% slice(1:3), caption = "Excerpt of the first 3 rows of education_clean")
 ```
 
 ```{=html}
@@ -160,7 +160,7 @@ summary_table_3 <- tibble(
 kable(summary_table_3, caption = "Summary of the Education Dataset:", escape = FALSE)
 ```
 
-## Data cleaning
+## Progressive Cleaning and Graphical Visualization
 
 **The first steps of cleaning just below are done on the education data set**. We realized that the name of the column variables were not properly aligned with their respective values compared to the initial data set in xlsx format. Thus, we had to change them. After that, we removed column 12 since this was not useful for our analysis, the latest was about people who did associate degrees. The second step of cleaning on the education dataset was to remove the column that concerns the year 2012 since our analysis is focused on the year 2022 only.
 
@@ -193,7 +193,7 @@ kable(
 )
 ```
 
-Changing the names of the states by their codes in the education dataset:
+We changed the names of the states by their codes, still in the education data set and we got rid of the observation about other jurisdictions as we don't have any information available about these:
 
 ```{r}
 state_name <- unique(education_clean$states) # Extraction of unique states' names
@@ -208,9 +208,10 @@ state_codes <- data.frame(
 )
 
 education_clean <- education_clean %>%
-  left_join(state_codes, by = c("states" = "state_name")) %>%  # Jointure par le nom des états
-  mutate(states = state_code) %>%  # Remplacer les noms par les codes
-  select(-state_code)  # Supprimer la colonne temporaire
+  left_join(state_codes, by = c("states" = "state_name")) %>%  # Jointure by states names
+  mutate(states = state_code) %>%  # Replace names by the codes
+  filter(states != "OTHER JURISDICTIONS") %>%  # Remove unwanted rows
+  select(-state_code)
 
 kable(
   head(education_clean, 3),
@@ -218,20 +219,20 @@ kable(
 )
 
 ```
-
-In the following, we are going to proceed to the **cleaning of the data set about drug seizure** that we've already imported. First, we kept only 2022 as this is the only year which we will focus our analysis on, thus we removed all other years.
+<br>
+In the following, we proceed to the **cleaning of the data set about drug seizure** that we've already imported. First, we kept only 2022 as this is the only year which we will focus our analysis on, thus we removed all other years.
 
 ```{r}
 #| message: false
 drug_seizure <- drug_seizure %>%
   filter(FY == 2022)%>%
   rename(states = `Area of Responsibility`) 
+
 kable(
   head(drug_seizure, 3),
   escape = FALSE
 )
 ```
-
 Now, the goal is to change the values in the variable `states` of the drug seizures data set because here they are organized in offices.
 ```{r}
 # Extract unique values from the 'states' column of the drug seizures data set
@@ -260,72 +261,116 @@ kable(
 )
 ```
 
-
-Below is the **cleaning of the lethal overdoses data set**. First of all, we filter in order to keep only the year 2022. then, we remove the column URL, which we won't use for our analysis.
-```{r}
-#| message: false
-lethal_overdoses <- lethal_overdoses %>%
-  filter(YEAR == 2022) %>%  # Keep only data for the year 2022
-  rename(states = STATE) %>%  # Rename the 'STATE' column to 'states'
-  select(-URL)  # Remove the 'URL' column
-
-kable(
-  head(lethal_overdoses, 3),
-  caption = "Summary of the cleaned lethal overdoses data set read as a variable: ",
-  escape = FALSE
-)
-```
-
-## Graphical representations
-
 #### Figure 1: The number of seizures per drug in the USA.
 
 ```{r}
+#| message: false
 library(ggplot2)
 library(plotly)
 
-# Example: summary of the seizures by drug type
+# Summary of the seizures by drug type
 drug_summary <- drug_seizure %>%
   group_by(`Drug Type`) %>%
-  summarise(Count = n())
+  summarise(
+    Total_Count = sum(`Count of Event`, na.rm = TRUE)  # Somme des valeurs
+  )
 
 # Creation of the graphic
 drug_plot <- ggplot(drug_summary, aes(
-  x = reorder(`Drug Type`, Count),
-  y = Count,
-  text = paste("Drug Type:", `Drug Type`, "<br>Count:", Count)
+  x = reorder(`Drug Type`, Total_Count),
+  y = Total_Count,
+  text = paste("Drug Type:", `Drug Type`, "<br>Count:", Total_Count)
 )) +
   geom_col(fill = "darkorange", alpha = 0.8) +
   coord_flip() +
   labs(
     title = "Number of seizures per drug",
     x = "Type of drug",
-    y = "Number of seizure"
+    y = "Number of seizures"
   ) +
   theme_minimal()
 
-# Convertir en graphique interactif
 ggplotly(drug_plot, tooltip = "text")
 
 ```
+#### Figure 2: Quantity seized per drug in the USA.
+```{r}
+# Summary of the seizures by drug type
+drug_summary_2 <- drug_seizure %>%
+  group_by(`Drug Type`) %>%
+  summarise(
+    Total_Quantity = sum(`Sum Qty (lbs)`, na.rm = TRUE)  
+  )
 
-#### Figure 2 : The number of seizures of Fentanyl only, per state in the USA.
+# Graph creation
+drug_plot <- ggplot(drug_summary_2, aes(
+  x = reorder(`Drug Type`, Total_Quantity),
+  y = Total_Quantity,
+  text = paste("Drug Type:", `Drug Type`, "<br>Total Quantity (lbs):", Total_Quantity)  # Texte pour le tooltip
+)) +
+  geom_col(fill = "darkorange", alpha = 0.8) + 
+  coord_flip() +
+  labs(
+    title = "Quantity of drugs seized per type (lbs)",
+    x = "Type of drug",
+    y = "Total quantity seized (lbs)"
+  ) +
+  theme_minimal()
+
+ggplotly(drug_plot, tooltip = "text")
+```
+
+<br>
+Continuing with the cleaning of the data set about drug seizure, we keep only the drug type "Fentanyl" as it is the core of our research focus:
+```{r}
+# Filter for only Fentanyl drug type
+drug_seizure <- drug_seizure %>%
+  filter(`Drug Type` == "Fentanyl")
+
+# Display a sample of the filtered data
+kable(
+  head(drug_seizure, 3),
+  escape = FALSE
+)
+```
+In the next chunk, we finish the cleaning of the data set about drug seizure, we first get rid of the columns that are useless for our analysis. The followings are the `Component` variable (which corresponds to the office in which the operations have been conducted), which we are not interested in, then, the `Region` variable as well as the `Land filter` variable. The last two are not important for our analysis because we won't focus on the differences inside each states but between each states and the variable `Region` gives information about the region of the offices, not of the states. Then, we perform data summarization by first aggregating the data by states, calculating the total number of events (Count of Event) and the total quantity of drugs seized (Sum Qty (lbs)) for each state. 
+```{r}
+# Deleting useless variables (columns)
+drug_seizure <- drug_seizure %>%
+  select(-Region, -`Land Filter`, -Component)
+
+# Exclude the state "INTL" as it is not a state
+drug_seizure <- drug_seizure %>%
+  filter(states != "INTL")
+
+# Agregating data by states
+drug_seizure_clean <- drug_seizure %>%
+  group_by(states) %>%
+  summarise(
+    total_events = sum(`Count of Event`, na.rm = TRUE),
+    total_quantity = sum(`Sum Qty (lbs)`, na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+# Print the result
+kable(
+  head(drug_seizure_clean, 3),
+  col.names = c("State", "Total Events", "Total Quantity"),
+  caption = "Summary of Fentanyl Seizures by State"
+)
+```
+
+#### Figure 3 : The number of seizures of Fentanyl only, per state in the USA.
 
 ```{r}
 library(ggplot2)
 library(plotly)
 
-# Filtrer uniquement les saisies de fentanyl
-fentanyl_data <- drug_seizure %>%
-  filter(`Drug Type` == "Fentanyl") %>%  # Filtrer pour Fentanyl
-  group_by(`states`) %>%  # Grouper par région
-  summarise(Fentanyl_Seizures = n())  # Compter les saisies
-
-# Création du graphique interactif avec ggplot2
-fentanyl_plot <- ggplot(fentanyl_data, aes(
-  x = reorder(`states`, Fentanyl_Seizures),  # Réorganiser par nombre de saisies
-  y = Fentanyl_Seizures,
-  text = paste("State:", `states`, "<br>Seizures of Fentanyl:", Fentanyl_Seizures)
+# Graph's creation with ggplot2 library
+fentanyl_plot_nbr <- ggplot(drug_seizure_clean, aes(
+  x = reorder(states, total_events),  # Réorganiser par nombre de saisies
+  y = total_events,
+  text = paste("State:", `states`, "<br>Seizures of Fentanyl:", total_events)
 )) +
   geom_col(fill = "red", alpha = 0.8) +
   coord_flip() +
@@ -336,18 +381,55 @@ fentanyl_plot <- ggplot(fentanyl_data, aes(
   ) +
   theme_minimal()
 
-# Convertir en graphique interactif avec plotly
-ggplotly(fentanyl_plot, tooltip = "text")
+# Convert into an interactive grphical representation with plotly
+ggplotly(fentanyl_plot_nbr, tooltip = "text")
 
 ```
+#### Figure 4: Quantity of fentanyl seized per state in the USA
+```{r}
+# Graph's creation with ggplot2 library
+fentanyl_plot_quantity <- ggplot(drug_seizure_clean, aes(
+  x = reorder(states, total_quantity),  # Reorder states by total quantity
+  y = total_quantity,  # Use total quantity on y-axis
+  text = paste("State:", states, "<br>Quantity of Fentanyl (lbs):", total_quantity)  # Tooltip text
+)) +
+  geom_col(fill = "blue", alpha = 0.8) +  # Blue bars for quantity
+  coord_flip() +  # Flip coordinates
+  labs(
+    title = "Quantity of Fentanyl seized per state (lbs)",
+    x = "State",
+    y = "Total quantity seized (lbs)"
+  ) +
+  theme_minimal()
 
-#### Figure 3: The rate of overdoses per state during 2022.
+# Convert into an interactive graphical representation with plotly
+ggplotly(fentanyl_plot_quantity, tooltip = "text")
+```
+
+<br>
+Below is the **cleaning of the lethal overdoses data set**. First of all, we filter in order to keep only the year 2022. then, we remove the column URL, which we won't use for our analysis and finally, we change the code for "District of Columbia" with its code.
+```{r}
+#| message: false
+lethal_overdoses_clean <- lethal_overdoses %>%
+  filter(YEAR == 2022) %>%  # Keep only data for the year 2022
+  rename(states = STATE) %>%  # Rename the 'STATE' column to 'states'
+  select(-URL) %>%  # Remove the 'URL' column
+  mutate(states = if_else(states == "District of Columbia", "DC", states))
+
+kable(
+  head(lethal_overdoses_clean, 3),
+  caption = "Summary of the cleaned lethal overdoses data set read as a variable: ",
+  escape = FALSE
+)
+```
+
+#### Figure 5: The rate of overdoses per state during 2022.
 
 ```{r}
 
 ```
 
-#### Figure 4: 
+#### Figure 6: 
 
 ```{r}
 
