@@ -360,51 +360,23 @@ kable(
   caption = "Summary of Fentanyl Seizures by State"
 )
 ```
-
-#### Figure 3 : The number of seizures of Fentanyl only, per state in the USA.
-
+Right below, I add a new observation called "USA" where each numeric column represents the mean of all corresponding values across the other states, providing a national-level summary for total events and quantities.
 ```{r}
-library(ggplot2)
-library(plotly)
+# Ajouter une ligne USA avec les moyennes des colonnes numériques
+drug_seizure_clean <- drug_seizure_clean %>%
+  bind_rows(
+    drug_seizure_clean %>%
+      summarise(
+        across(where(is.numeric), mean, na.rm = TRUE),  # Calcul des moyennes pour les colonnes numériques
+        states = "USA"
+      )
+  )
 
-# Graph's creation with ggplot2 library
-fentanyl_plot_nbr <- ggplot(drug_seizure_clean, aes(
-  x = reorder(states, total_events),  # Réorganiser par nombre de saisies
-  y = total_events,
-  text = paste("State:", `states`, "<br>Seizures of Fentanyl:", total_events)
-)) +
-  geom_col(fill = "red", alpha = 0.8) +
-  coord_flip() +
-  labs(
-    title = "Number of seizures of Fentanyl",
-    x = "State",
-    y = "Number of seizures"
-  ) +
-  theme_minimal()
-
-# Convert into an interactive grphical representation with plotly
-ggplotly(fentanyl_plot_nbr, tooltip = "text")
-
-```
-#### Figure 4: Quantity of fentanyl seized per state in the USA
-```{r}
-# Graph's creation with ggplot2 library
-fentanyl_plot_quantity <- ggplot(drug_seizure_clean, aes(
-  x = reorder(states, total_quantity),  # Reorder states by total quantity
-  y = total_quantity,  # Use total quantity on y-axis
-  text = paste("State:", states, "<br>Quantity of Fentanyl (lbs):", total_quantity)  # Tooltip text
-)) +
-  geom_col(fill = "blue", alpha = 0.8) +  # Blue bars for quantity
-  coord_flip() +  # Flip coordinates
-  labs(
-    title = "Quantity of Fentanyl seized per state (lbs)",
-    x = "State",
-    y = "Total quantity seized (lbs)"
-  ) +
-  theme_minimal()
-
-# Convert into an interactive graphical representation with plotly
-ggplotly(fentanyl_plot_quantity, tooltip = "text")
+kable(
+  head(drug_seizure_clean, 3),
+  caption = "Drug seizure dataset with an additional row for USA (mean values):",
+  escape = FALSE
+)
 ```
 
 <br>
@@ -414,7 +386,7 @@ Below is the **cleaning of the lethal overdoses data set**. First of all, we fil
 lethal_overdoses_clean <- lethal_overdoses %>%
   filter(YEAR == 2022) %>%  # Keep only data for the year 2022
   rename(states = STATE) %>%  # Rename the 'STATE' column to 'states'
-  select(-URL) %>%  # Remove the 'URL' column
+  select(-URL, -YEAR) %>%  # Remove the 'URL' column
   mutate(states = if_else(states == "District of Columbia", "DC", states))
 
 kable(
@@ -423,10 +395,26 @@ kable(
   escape = FALSE
 )
 ```
+Here, we are again adding a USA observation that calculate the mean across all the states of all the variables of the data set:
+```{r}
+lethal_overdoses_clean <- lethal_overdoses_clean %>%
+  bind_rows(
+    lethal_overdoses_clean %>%
+      summarise(
+        across(where(is.numeric), mean, na.rm = TRUE),  # Calcul des moyennes pour les colonnes numériques
+        states = "USA"  # Ajouter l'état 'USA'
+      )
+  )
+
+kable(
+  head(lethal_overdoses_clean, 3),
+  caption = "Lethal Overdoses dataset with an additional row for USA (mean values):",
+  escape = FALSE
+)
+```
 
 #### Map of Lethal Overdoses in USA
-```{r}
-#| message: false
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 # Charger les packages nécessaires
 library(sf)
 library(mapview)
@@ -446,7 +434,7 @@ us_overdoses <- us_states %>%
 glimpse(us_overdoses)
 
 # Étape 4 : Créer une carte interactive avec mapview
-map <- mapview(
+map_overdose <- mapview(
   us_overdoses,
   zcol = "RATE",                # Colonne utilisée pour la couleur
   layer.name = "Taux d'Overdoses",  # Nom de la couche
@@ -458,16 +446,17 @@ map <- mapview(
 custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3")  # 4 couleurs distinctes
 
 # Appliquer la palette personnalisée
-map <- mapview(
+map_overdose <- mapview(
   us_overdoses,
   zcol = "RATE",
   layer.name = "Taux d'Overdoses",
   col.regions = custom_palette,
   legend = TRUE
 )
-
-# Afficher la carte
-map
 ```
+```{r}
+map_overdose
+```
+
 
 #### Figure 5: The rate of overdoses per state during 2022.
