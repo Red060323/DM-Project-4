@@ -424,17 +424,3 @@ kable(
 ```
 
 #### Figure 5: The rate of overdoses per state during 2022.
-
-```{r}
-
-```
-
-<<<<<<< Updated upstream
-#### Figure 6: 
-=======
-#### Figure 4:
->>>>>>> Stashed changes
-
-```{r}
-
-```
