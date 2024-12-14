@@ -124,7 +124,7 @@ summary_table_2<- tibble(
     "We found the Drug Poisoning Mortality dataset on the Centers for Disease Control and Prevention (CDC) website. The CDC is a national public health agency under the Department of Health and Human Services. Its missions are to protect public health by conducting critical research, provide reliable health information, and manage health emergencies (for example, during the COVID-19 pandemic, the CDC played a huge role by coordinating the national response by providing guidelines for prevention, conducting research on the virus, distributing vaccines, and offering critical health data to inform public policy and protect communities). The agency works to prevent disease outbreaks, promote health equity, and advance the overall well-being of the population. This dataset highlights trends in drug-related deaths and helps policymakers, researchers, and public health officials address the growing opioid crisis and other drug-related challenges.",
     nrow(lethal_overdoses),
     ncol(lethal_overdoses),
-    "For each year from 1999 to 2022 and for each state, we have the overdose death rate as well as the the number of deaths per 100,000 total population.",
+    "For each year from 1999 to 2022 and for each state, we have the overdose death rate as well as the the number of deaths because of overdose, both per 100,000 inhabitants",
     round(sum(is.na(lethal_overdoses)) / (nrow(lethal_overdoses) * ncol(lethal_overdoses)) * 100, 2)
   )
 )
@@ -191,7 +191,7 @@ kable(
 )
 ```
 
-We changed the names of the states by their codes, still in the education data set and we got rid of the observation about other jurisdictions as we don't have any information available about these:
+We changed the names of the states by their codes, still in the education data set and we got rid of the observation about other jurisdictions as we don't have any information available about these, then, we had to fix the fact that our numeric columns are stored as characters, likely due to the use of commas as decimal or thousand separators.
 
 ```{r}
 state_name <- unique(education_clean$states) # Extraction of unique states' names
@@ -210,7 +210,7 @@ education_clean <- education_clean %>%
   mutate(states = state_code) %>%  # Replace names by the codes
   filter(states != "OTHER JURISDICTIONS") %>%  # Remove unwanted rows
   select(-state_code)
-
+  
 kable(
   head(education_clean, 3),
   escape = FALSE
@@ -222,34 +222,34 @@ kable(
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 #| message: false
-# Charger les packages nécessaires
+# Load necessary libraries
 library(sf)
 library(mapview)
 library(dplyr)
 library(rnaturalearth)
 library(rnaturalearthhires)
 
-# Étape 1 : Charger les données géographiques des États-Unis
+# Load the geographical data of the United States
 us_states <- ne_states(country = "United States of America", returnclass = "sf") %>%
-  rename(states = postal)  # Harmoniser les colonnes pour la jointure
+  rename(states = postal)  # Harmonization of the columns for the jointure
 
-# Étape 2 : Jointure des données d'éducation avec les données géographiques
+# Jointure of the education data set with the geographical data of the USA
 us_education <- us_states %>%
-  left_join(education_clean, by = "states")  # Jointure via la colonne harmonisée `states`
+  left_join(education_clean, by = "states")  # Jointure via the harmonized column `states`
 
-# Vérifiez si la jointure a fonctionné
+# Just checking if the jointure worked
 glimpse(us_education)
 
-# Étape 3 : Créer une carte interactive avec mapview
+# Creation of an interactive map with mapview
 map_education <- mapview(
   us_education,
-  zcol = "years25_graduate_2022",  # Colonne utilisée pour la couleur
-  layer.name = "Graduate Education Levels (%)",  # Nom de la couche
-  col.regions = viridis::viridis(100),  # Palette de couleurs
+  zcol = "years25_graduate_2022",  # Column used for the color
+  layer.name = "Graduate Education Levels (%)",  # Name of the layer
+  col.regions = viridis::viridis(100),  # Palette of colors
   legend = TRUE
 )
 
-# Appliquer une palette personnalisée
+# Apply a personalized palette
 custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3", "#a65628")  # Palette manuelle
 map <- mapview(
   us_education,
@@ -260,11 +260,12 @@ map <- mapview(
 )
 ```
 ```{r}
-# Étape 4 : Afficher la carte
+# Display the map
 map_education
 ```
 
-
+<u>Notice that by zooming on each state, you can see the name of it and this will be the case on all the maps</u>
+<br><br>
 -   **Comments:**
 
     Visually, we can see a heterogeneous distribution: some states have darker colors, indicating a greater concentration of higher education graduates, while others, lighter, have fewer. The use of color gradients allows regional variations to be identified at a glance. Interactive pop-ups (not visible on the image, but present on mouse-over) would give more detail on each state, such as its name and the precise value of the percentage of graduates.
@@ -323,7 +324,7 @@ library(plotly)
 drug_summary <- drug_seizure %>%
   group_by(`Drug Type`) %>%
   summarise(
-    Total_Count = sum(`Count of Event`, na.rm = TRUE)  # Somme des valeurs
+    Total_Count = sum(`Count of Event`, na.rm = TRUE)
   )
 
 # Creation of the graphic
@@ -343,6 +344,9 @@ drug_plot <- ggplot(drug_summary, aes(
 
 ggplotly(drug_plot, tooltip = "text")
 ```
+<br>
+These two graphs highlight the quantity and events of drugs seized per type in the USA, showcasing methamphetamine, khat, and marijuana as the most seized drugs. While fentanyl accounts for a smaller proportion of the total quantity seized, its public health impact is disproportionately high due to its potency and contribution to overdose deaths.
+<br>
 
 #### Figure 2: Quantity seized per drug in the USA.
 
@@ -358,7 +362,7 @@ drug_summary_2 <- drug_seizure %>%
 drug_plot <- ggplot(drug_summary_2, aes(
   x = reorder(`Drug Type`, Total_Quantity),
   y = Total_Quantity,
-  text = paste("Drug Type:", `Drug Type`, "<br>Total Quantity (lbs):", Total_Quantity)  # Texte pour le tooltip
+  text = paste("Drug Type:", `Drug Type`, "<br>Total Quantity (lbs):", Total_Quantity)  # Text for the tooltip
 )) +
   geom_col(fill = "darkorange", alpha = 0.8) + 
   coord_flip() +
@@ -379,7 +383,6 @@ ggplotly(drug_plot, tooltip = "text")
 drug_seizure <- drug_seizure %>%
   filter(`Drug Type` == "Fentanyl")
 
-# Display a sample of the filtered data
 kable(
   head(drug_seizure, 3),
   escape = FALSE
@@ -414,17 +417,28 @@ kable(
 )
 ```
 
-Right below, I add a new observation called "USA" where each numeric column represents the mean of all corresponding values across the other states, providing a national-level summary for total events and quantities.
+Right below, I add a new observation called "USA" where each numeric column represents the mean of all corresponding values across the other states, providing a national-level summary for total events and quantities. The rest opf the script calculates the proportion of total_events and total_quantity for each state relative to the USA total (the "USA" row represents 100%) and adds two new variables, total_events_proportion and total_quantity_proportion, to the dataset. These new variables express each state's contribution as a percentage of the overall total.
 
 ```{r}
-# Ajouter une ligne USA avec les moyennes des colonnes numériques
+# Add a USA row with the averages of the numeric columns
 drug_seizure_clean <- drug_seizure_clean %>%
+ filter(states != "USA") %>% # Remove the current USA row if it exists
   bind_rows(
     drug_seizure_clean %>%
       summarise(
-        across(where(is.numeric), mean, na.rm = TRUE),  # Calcul des moyennes pour les colonnes numériques
-        states = "USA"
+        across(
+          where(is.numeric), 
+          ~ sum(.x, na.rm = TRUE) # Sum all numeric columns
+        ),
+        states = "USA" # Add the "USA" state name
       )
+  )
+
+# Adding the proportion variables
+drug_seizure_clean <- drug_seizure_clean %>%
+  mutate(
+    total_events_proportion = round((total_events / total_events[states == "USA"]) * 100, 2),
+    total_quantity_proportion = round((total_quantity / total_quantity[states == "USA"]) * 100, 2)
   )
 
 kable(
@@ -437,35 +451,35 @@ kable(
 #### Map of Drug Seizure in USA
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
-# Charger les packages nécessaires
+# The order of the steps and the steps themselves are the same as the ones we used for the education data set
 library(sf)
 library(mapview)
 library(dplyr)
 library(rnaturalearth)
 library(rnaturalearthhires)
 
-# Étape 1 : Charger les données géographiques des États-Unis
+# Step 1
 us_states <- ne_states(country = "United States of America", returnclass = "sf") %>%
-  rename(states = postal)  # Harmoniser la colonne `states`
+  rename(states = postal) 
 
-# Étape 2 : Jointure des données de drug seizures avec les données géographiques
+# Step 2
 us_drug_seizure <- us_states %>%
-  left_join(drug_seizure_clean, by = "states") # Jointure via la colonne `states``
+  left_join(drug_seizure_clean, by = "states") 
 
-# Vérifiez si la jointure a fonctionné
+# Step 3
 glimpse(us_drug_seizure)
 
-# Étape 3 : Créer une carte interactive avec mapview
+# Step 4:
 map_drug_seizure <- mapview(
   us_drug_seizure,
-  zcol = "total_quantity",         # Colonne utilisée pour la couleur
-  layer.name = "Drug Seizure Quantity (lbs)",  # Nom de la couche
-  col.regions = viridis::viridis(100),  # Palette de couleurs Viridis
+  zcol = "total_quantity",        
+  layer.name = "Drug Seizure Quantity (lbs)",  
+  col.regions = viridis::viridis(100), 
   legend = TRUE
 )
 
-# Optionnel : Appliquer une palette manuelle (si nécessaire)
-custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3", "#a65628")  # Palette personnalisée
+# Step 5:
+custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3", "#a65628")  
 
 map_drug_seizure <- mapview(
   us_drug_seizure,
@@ -473,17 +487,16 @@ map_drug_seizure <- mapview(
   layer.name = "Drug Seizure Quantity (lbs)",
   col.regions = custom_palette,
   legend = TRUE
-  )  # Popup affichant l'abréviation et la quantité
+  )  # Popup displaying the abbreviation and quantity
 ```
 ```{r}
-# Étape 4 : Afficher la carte
+# Displaying the map
 map_drug_seizure
 ```
-
 -   **Comments:**
 
-    This map illustrates the quantity of drugs seized (in pounds) by state in the United States. The data show significant variation between states. California and Arizon record the highest quantities, exceeding 7,000 pounds respectively. On the other hand, several states, notably Alaska, show unavailable data or negligible quantities. The disparities observed may reflect factors such as the importance of drug trafficking routes, the proximity of borders and the priorities of law enforcement in each region.
-    
+    This map illustrates the quantity of drugs seized (in pounds) by state in the United States. The data show significant variations between states. California and Arizona record the highest quantities, exceeding 7,000 pounds respectively. On the other hand, several states, notably Alaska, show unavailable data or negligible quantities. The disparities observed may reflect factors such as the importance of drug trafficking routes, the proximity of borders and the priorities of law enforcement in each region. Due to this lack of some information, our analysis will focus on comparing drug seizure quantities across specific regions, including the northern, southern, eastern, and western borders of the United States. This approach allows us to identify regional patterns despite the missing data.
+
 <br> Below is the **cleaning of the lethal overdoses data set**. First of all, we filter in order to keep only the year 2022. then, we remove the column URL, which we won't use for our analysis and finally, we change the code for "District of Columbia" with its code.
 
 ```{r}
@@ -503,16 +516,24 @@ kable(
 
 Here, we are again adding a USA observation that calculate the mean across all the states of all the variables of the data set:
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 lethal_overdoses_clean <- lethal_overdoses_clean %>%
   bind_rows(
     lethal_overdoses_clean %>%
       summarise(
-        across(where(is.numeric), mean, na.rm = TRUE),  # Calcul des moyennes pour les colonnes numériques
-        states = "USA"  # Ajouter l'état 'USA'
+        across(
+          .cols = where(is.numeric) & !c("DEATHS"),
+          .fns = mean,
+          na.rm = TRUE
+        ),
+        RATE = round(mean(RATE, na.rm = TRUE), 2),
+        DEATHS = sum(DEATHS),
+        states = "USA" # Add the observation `USA`
       )
   )
 
+```
+```{r}
 kable(
   head(lethal_overdoses_clean, 3),
   caption = "Lethal Overdoses dataset with an additional row for USA (mean values):",
@@ -520,44 +541,45 @@ kable(
 )
 ```
 
+
 #### Map of Lethal Overdoses in USA
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
-# Charger les packages nécessaires
+# The order of the steps and the steps themselves are the same as the ones we used for the education and the drug seizure data set
 library(sf)
 library(mapview)
 library(dplyr)
 library(rnaturalearth)
 library(rnaturalearthhires)
 
-# Étape 1 : Charger les données géographiques des États-Unis
+# Step 1
 us_states <- ne_states(country = "United States of America", returnclass = "sf")%>%
   rename(states = postal)
 
-# Étape 3 : Jointure des données sur les overdoses avec les données géographiques
+# Step 2
 us_overdoses <- us_states %>%
-  left_join(lethal_overdoses_clean, by = "states")  # Jointure via la colonne harmonisée `states`
+  left_join(lethal_overdoses_clean, by = "states")  
 
-# Vérifiez si la jointure a fonctionné
+# Step 3
 glimpse(us_overdoses)
 
-# Étape 4 : Créer une carte interactive avec mapview
+# Step 4
 map_overdose <- mapview(
   us_overdoses,
-  zcol = "RATE",                # Colonne utilisée pour la couleur
-  layer.name = "Taux d'Overdoses",  # Nom de la couche
-  col.regions = viridis::viridis(100),  # Palette de couleurs
+  zcol = "RATE",             
+  layer.name = "Overdoses Rate", 
+  col.regions = viridis::viridis(100),  
   legend = TRUE
 )
 
-# Palette manuelle
-custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3")  # 4 couleurs distinctes
+# Step 5
+custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3")  
 
-# Appliquer la palette personnalisée
+# Step 6
 map_overdose <- mapview(
   us_overdoses,
   zcol = "RATE",
-  layer.name = "Taux d'Overdoses",
+  layer.name = "Overdoses Rate",
   col.regions = custom_palette,
   legend = TRUE
 )
@@ -569,5 +591,33 @@ map_overdose
 -   **Comments:**
 
     This graph shows overdose rates by state in 2022, with colors ranging from green (low rates) to red/purple (high rates). The highest rates are seen in states such as West Virginia, Tennessee, and Maryland, often exceeding 70 overdoses per 100,000 inhabitants, while the lowest rates are found mainly in western states, such as South Dakota or Nebrasaka, with values below 20. This distribution highlights a marked regional disparity in the U.S. overdose crisis.
+    
+### Joining
+```{r}
+# Perform the inner join on the three datasets using the 'states' variable
+joined_dataset <- drug_seizure_clean %>%
+  inner_join(education_clean, by = "states") %>%
+  inner_join(lethal_overdoses_clean, by = "states")
 
-#### Figure 5: The rate of overdoses per state during 2022.
+# View the resulting dataset
+kable(
+  head(joined_dataset, 3), 
+  caption = "Final dataset: Combined information from all three datasets (states in common only)", 
+  escape = FALSE
+)
+```
+<br>
+The joining process combines our three datasets (`drug_seizure_clean`, `education_clean`, and `lethal_overdoses_clean`) by using the common variable `states`. An **inner join** was performed, ensuring that only states present in all three datasets are included in the final combined dataset. This ensures consistency and avoids missing data issues for the analysis. <br>
+
+The resulting dataset contains the following variables: <br>
+<br>
+- **states**: Abbreviations for each state. <br>
+- **total_events**: Total number of drug seizure events. <br>
+- **total_quantity**: Total quantity of drugs seized (in pounds). <br>
+- **total_events_proportion**: The proportion of drug seizure events for each state relative to the USA. <br>
+- **total_quantity_proportion**: The proportion of drug quantity seized for each state relative to the USA. <br>
+- Additional **education-related variables** (e.g., levels of education attainment by age groups) <br>
+-**RATE and DEATHS**: Provide information about the overdose death rate as well as the the number of deaths because of overdose, both per 100,000 inhabitants for each state. <br>
+
+This merged dataset facilitates comprehensive cross-sectional analysis, integrating drug seizures, education levels, and overdose metrics for the states in common.
+
