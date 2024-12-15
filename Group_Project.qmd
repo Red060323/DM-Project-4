@@ -105,6 +105,7 @@ summary_table_1<- tibble(
 
 kable(summary_table_1, caption = "Summary of the Drug Seizures Dataset:", escape = FALSE)
 ```
+
 <br>
 
 **2) Dataset about drug overdose mortality in the United States** <br> <a href="https://www.cdc.gov/nchs/pressroom/sosmap/drug_poisoning_mortality/drug_poisoning.htm" target="_blank">Link to the website of the dataset</a> <br> Once you clicked on the link, you can scroll down and you will find, below the table, a link to directly download the data set in CSV.
@@ -131,6 +132,7 @@ summary_table_2<- tibble(
 
 kable(summary_table_2, caption = "Summary of the Drug Overdose Mortality Dataset:", escape = FALSE)
 ```
+
 <br>
 
 **3) Dataset about education levels accross the United States** <br> <a href="https://nces.ed.gov/programs/digest/d23/tables/dt23_104.80.asp" target="_blank">Link to the dataset</a> <br>
@@ -180,9 +182,13 @@ education_clean <- education_clean %>%
     `years25_graduate_2022` = 15
   )
 
-# Remove useless columns as well as columns on the year 2012
 education_clean <- education_clean %>%
-  select(-useless, -matches("2012"))
+  # Supprimer tout ce qui est après la virgule (y compris la virgule) et les points
+  mutate(across(-states, ~ gsub(",.*", "", .))) %>%  # Supprime la virgule et tout après
+  mutate(across(-states, ~ gsub("\\.", "", .))) %>%  # Supprime les points
+  # Convertir en numérique
+  mutate(across(-states, ~ as.numeric(.)))
+
 
 # Sample of the cleaned education data set
 kable(
@@ -210,7 +216,7 @@ education_clean <- education_clean %>%
   mutate(states = state_code) %>%  # Replace names by the codes
   filter(states != "OTHER JURISDICTIONS") %>%  # Remove unwanted rows
   select(-state_code)
-  
+
 kable(
   head(education_clean, 3),
   escape = FALSE
@@ -244,31 +250,40 @@ glimpse(us_education)
 map_education <- mapview(
   us_education,
   zcol = "years25_graduate_2022",  # Column used for the color
-  layer.name = "Graduate Education Levels (%)",  # Name of the layer
+  layer.name = "Graduate Education Population (in Million)",  # Name of the layer
   col.regions = viridis::viridis(100),  # Palette of colors
   legend = TRUE
 )
 
 # Apply a personalized palette
 custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3", "#a65628")  # Palette manuelle
-map <- mapview(
+map_education <- mapview(
   us_education,
   zcol = "years25_graduate_2022",
-  layer.name = "Graduate Education Levels (%)",
+  layer.name = "Graduate Education Population (in Million)",
   col.regions = custom_palette,
   legend = TRUE
 )
 ```
+
 ```{r}
 # Display the map
 map_education
 ```
 
-<u>Notice that by zooming on each state, you can see the name of it and this will be the case on all the maps</u>
-<br><br>
+<u>Notice that by zooming on each state, you can see the name of it and this will be the case on all the maps</u> <br>
+
 -   **Comments:**
 
-    Visually, we can see a heterogeneous distribution: some states have darker colors, indicating a greater concentration of higher education graduates, while others, lighter, have fewer. The use of color gradients allows regional variations to be identified at a glance. Interactive pop-ups (not visible on the image, but present on mouse-over) would give more detail on each state, such as its name and the precise value of the percentage of graduates.
+    This graphic show that states with low levels of education, specially those in the southern U.S. (for istance Louisiana, Mississippi and Arkansas), correspondz to regions with moderately high quantities of drugs seized. Conversely, some states with a high level of education, such as California, also show significant seizures.
+
+    This may be explained by their high population density and more developed infrastructure for detecting and monitoring drug trafficking, irrespective of education levels. Finally, anomalies emerge in states such as Texas and Arizona, which record significant seizures despite education levels that do not stand out. This situation could reflect their strategic role as transit zones, notably due to their proximity to borders, facilitating drug trafficking.
+
+-   **Hypothesis based on Graphics:**
+
+    We may have a potential link between education levels and the drug situation in some regions. In areas where the level of education is relatively low, this could be associated with higher consumption behaviors or an increased prevalence of drug trafficking. However, this relationship isn't universal, and highly dependent on factors such as demographics and regional specificities.
+
+    On the other hand, well-educated states such as California or New York, which record significant seizures, do not necessarily reflect high consumption. Rather, these seizures could be the result of effective surveillance systems and infrastructures capable of intercepting drug trafficking, further highlighting their strategic role in the fight against this phenomenon.
 
 <br> In the following, we proceed to the **cleaning of the data set about drug seizure** that we've already imported. First, we kept only 2022 as this is the only year which we will focus our analysis on, thus we removed all other years.
 
@@ -344,9 +359,8 @@ drug_plot <- ggplot(drug_summary, aes(
 
 ggplotly(drug_plot, tooltip = "text")
 ```
-<br>
-These two graphs highlight the quantity and events of drugs seized per type in the USA, showcasing methamphetamine, khat, and marijuana as the most seized drugs. While fentanyl accounts for a smaller proportion of the total quantity seized, its public health impact is disproportionately high due to its potency and contribution to overdose deaths.
-<br>
+
+<br> These two graphs highlight the quantity and events of drugs seized per type in the USA, showcasing methamphetamine, khat, and marijuana as the most seized drugs. While fentanyl accounts for a smaller proportion of the total quantity seized, its public health impact is disproportionately high due to its potency and contribution to overdose deaths. <br>
 
 #### Figure 2: Quantity seized per drug in the USA.
 
@@ -472,27 +486,22 @@ glimpse(us_drug_seizure)
 # Step 4:
 map_drug_seizure <- mapview(
   us_drug_seizure,
-  zcol = "total_quantity",        
-  layer.name = "Drug Seizure Quantity (lbs)",  
-  col.regions = viridis::viridis(100), 
-  legend = TRUE
-)
-
-# Step 5:
-custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3", "#a65628")  
-
-map_drug_seizure <- mapview(
-  us_drug_seizure,
-  zcol = "total_quantity",
+  zcol = "total_quantity_proportion",
   layer.name = "Drug Seizure Quantity (lbs)",
   col.regions = custom_palette,
   legend = TRUE
   )  # Popup displaying the abbreviation and quantity
+
+# Step 5:
+custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3", "#a65628")  
+
 ```
+
 ```{r}
 # Displaying the map
 map_drug_seizure
 ```
+
 -   **Comments:**
 
     This map illustrates the quantity of drugs seized (in pounds) by state in the United States. The data show significant variations between states. California and Arizona record the highest quantities, exceeding 7,000 pounds respectively. On the other hand, several states, notably Alaska, show unavailable data or negligible quantities. The disparities observed may reflect factors such as the importance of drug trafficking routes, the proximity of borders and the priorities of law enforcement in each region. Due to this lack of some information, our analysis will focus on comparing drug seizure quantities across specific regions, including the northern, southern, eastern, and western borders of the United States. This approach allows us to identify regional patterns despite the missing data.
@@ -531,8 +540,8 @@ lethal_overdoses_clean <- lethal_overdoses_clean %>%
         states = "USA" # Add the observation `USA`
       )
   )
-
 ```
+
 ```{r}
 kable(
   head(lethal_overdoses_clean, 3),
@@ -540,7 +549,6 @@ kable(
   escape = FALSE
 )
 ```
-
 
 #### Map of Lethal Overdoses in USA
 
@@ -588,11 +596,13 @@ map_overdose <- mapview(
 ```{r}
 map_overdose
 ```
+
 -   **Comments:**
 
     This graph shows overdose rates by state in 2022, with colors ranging from green (low rates) to red/purple (high rates). The highest rates are seen in states such as West Virginia, Tennessee, and Maryland, often exceeding 70 overdoses per 100,000 inhabitants, while the lowest rates are found mainly in western states, such as South Dakota or Nebrasaka, with values below 20. This distribution highlights a marked regional disparity in the U.S. overdose crisis.
-    
+
 ### Joining
+
 ```{r}
 # Perform the inner join on the three datasets using the 'states' variable
 joined_dataset <- drug_seizure_clean %>%
@@ -606,18 +616,9 @@ kable(
   escape = FALSE
 )
 ```
-<br>
-The joining process combines our three datasets (`drug_seizure_clean`, `education_clean`, and `lethal_overdoses_clean`) by using the common variable `states`. An **inner join** was performed, ensuring that only states present in all three datasets are included in the final combined dataset. This ensures consistency and avoids missing data issues for the analysis. <br>
 
-The resulting dataset contains the following variables: <br>
-<br>
-- **states**: Abbreviations for each state. <br>
-- **total_events**: Total number of drug seizure events. <br>
-- **total_quantity**: Total quantity of drugs seized (in pounds). <br>
-- **total_events_proportion**: The proportion of drug seizure events for each state relative to the USA. <br>
-- **total_quantity_proportion**: The proportion of drug quantity seized for each state relative to the USA. <br>
-- Additional **education-related variables** (e.g., levels of education attainment by age groups) <br>
--**RATE and DEATHS**: Provide information about the overdose death rate as well as the the number of deaths because of overdose, both per 100,000 inhabitants for each state. <br>
+<br> The joining process combines our three datasets (`drug_seizure_clean`, `education_clean`, and `lethal_overdoses_clean`) by using the common variable `states`. An **inner join** was performed, ensuring that only states present in all three datasets are included in the final combined dataset. This ensures consistency and avoids missing data issues for the analysis. <br>
+
+The resulting dataset contains the following variables: <br> <br> - **states**: Abbreviations for each state. <br> - **total_events**: Total number of drug seizure events. <br> - **total_quantity**: Total quantity of drugs seized (in pounds). <br> - **total_events_proportion**: The proportion of drug seizure events for each state relative to the USA. <br> - **total_quantity_proportion**: The proportion of drug quantity seized for each state relative to the USA. <br> - Additional **education-related variables** (e.g., levels of education attainment by age groups) <br> -**RATE and DEATHS**: Provide information about the overdose death rate as well as the the number of deaths because of overdose, both per 100,000 inhabitants for each state. <br>
 
 This merged dataset facilitates comprehensive cross-sectional analysis, integrating drug seizures, education levels, and overdose metrics for the states in common.
-
