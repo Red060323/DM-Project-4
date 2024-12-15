@@ -34,7 +34,7 @@ lethal_overdoses <- vroom(here("lethal-overdoses.csv"))
 education <- vroom(here("education.csv"))
 ```
 
-Just below, we implemented a first cleaning of the `education` variable, which we called `education_preclean`. The goal was first to remove the empty columns, and renaming the remaining ones for clarity and usability.
+Just below, we implemented a first cleaning of the `education` variable, which we called `education_clean`. The goal was first to remove the empty columns, and renaming the remaining ones for clarity and usability.
 
 ```{r}
 #| message: false
@@ -152,7 +152,7 @@ summary_table_3 <- tibble(
     "The National Center for Education Statistics (NCES) is a federal agency that operates under the U.S. Department of Education. Its purpose is to gather, analyze, and share data about education across the United States, from early childhood to higher education. The NCES plays a critical role in providing accurate, reliable, and up-to-date information to help people better understand how the education system functions and how it affects students, teachers, and communities. One of the main goals of the NCES is to support decision-making by providing data that policymakers, educators, and researchers can use to improve education. Its work includes collecting statistics on topics such as student enrollment, academic performance, school funding, and teacher employment. This information helps government officials and school leaders make informed choices about funding allocation, program development, and education reforms. By publishing detailed reports and datasets, the NCES allows educators and researchers to analyze trends, identify gaps, and evaluate the fairness and efficiency of school systems. Its data also sheds light on important issues like whether public school funding is being used effectively and whether all students have equal access to educational resources. Through its efforts, the NCES helps improve the quality of education and ensures that learning opportunities are fair and accessible for everyone.",
     nrow(education_clean),
     ncol(education_clean),
-    "For each state, we have the proportion of people under 24 who were high school completers in years 2012 and 2022, the proportion of people of age 25+ who have not completed their secondary education, as well as those who have graduated from high school, those who got a bachelor's degree and those who got a graduate degree, all those both for the years 2012 and 2022.",
+    "For each state, we have the number of people under 24 who were high school completers in years 2012 and 2022, the number of people of age 25+ who have not completed their secondary education, as well as those who have graduated from high school, those who got a bachelor's degree and those who got a graduate degree, all those both for the years 2012 and 2022.",
     round(sum(is.na(education_clean)) / (nrow(education_clean) * ncol(education_clean)) * 100, 2)
   )
 )
@@ -160,9 +160,9 @@ summary_table_3 <- tibble(
 kable(summary_table_3, caption = "Summary of the Education Dataset:", escape = FALSE)
 ```
 
-## Progressive Cleaning and Graphical Visualization
-
-**The first steps of cleaning just below are done on the education data set**. We realized that the name of the column variables were not properly aligned with their respective values compared to the initial data set in xlsx format. Thus, we had to change them. After that, we removed column 12 since this was not useful for our analysis, the latest was about people who did associate degrees. The second step of cleaning on the education dataset was to remove the column that concerns the year 2012 since our analysis is focused on the year 2022 only.
+## Cleaning
+### Education Data Set
+The first steps of cleaning just below are done on the education data set. We realized that the name of the column variables were not properly aligned with their respective values compared to the initial data set in xlsx format. Thus, we had to change them. After that, we removed column 12 since this was not useful for our analysis, the latest was about people who did associate degrees. The second step of cleaning on the education dataset was to remove the column that concerns the year 2012 since our analysis is focused on the year 2022 only. Then, we had to fix the fact that our numeric columns are stored as characters, likely due to the use of commas as decimal or thousand separators.
 
 ```{r}
 # Rename specific columns and remove column 12
@@ -182,11 +182,15 @@ education_clean <- education_clean %>%
     `years25_graduate_2022` = 15
   )
 
+# Remove useless columns as well as columns on the year 2012
 education_clean <- education_clean %>%
-  # Supprimer tout ce qui est après la virgule (y compris la virgule) et les points
-  mutate(across(-states, ~ gsub(",.*", "", .))) %>%  # Supprime la virgule et tout après
-  mutate(across(-states, ~ gsub("\\.", "", .))) %>%  # Supprime les points
-  # Convertir en numérique
+  select(-useless, -matches("2012"))
+
+education_clean <- education_clean %>%
+  # Remove everything after the comma (including the comma) and the periods
+  mutate(across(-states, ~ gsub(",.*", "", .))) %>%  # Remove the comma and everything after it
+  mutate(across(-states, ~ gsub("\\.", "", .))) %>%  # Remove the dots
+  # Convert to numeric
   mutate(across(-states, ~ as.numeric(.)))
 
 
@@ -197,7 +201,7 @@ kable(
 )
 ```
 
-We changed the names of the states by their codes, still in the education data set and we got rid of the observation about other jurisdictions as we don't have any information available about these, then, we had to fix the fact that our numeric columns are stored as characters, likely due to the use of commas as decimal or thousand separators.
+We changed the names of the states by their codes, still in the education data set and we got rid of the observation about other jurisdictions as we don't have any information available about these.
 
 ```{r}
 state_name <- unique(education_clean$states) # Extraction of unique states' names
@@ -223,69 +227,8 @@ kable(
 )
 
 ```
-
-#### Map of Education for the Graduated students in US
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
-#| message: false
-# Load necessary libraries
-library(sf)
-library(mapview)
-library(dplyr)
-library(rnaturalearth)
-library(rnaturalearthhires)
-
-# Load the geographical data of the United States
-us_states <- ne_states(country = "United States of America", returnclass = "sf") %>%
-  rename(states = postal)  # Harmonization of the columns for the jointure
-
-# Jointure of the education data set with the geographical data of the USA
-us_education <- us_states %>%
-  left_join(education_clean, by = "states")  # Jointure via the harmonized column `states`
-
-# Just checking if the jointure worked
-glimpse(us_education)
-
-# Creation of an interactive map with mapview
-map_education <- mapview(
-  us_education,
-  zcol = "years25_graduate_2022",  # Column used for the color
-  layer.name = "Graduate Education Population (in Million)",  # Name of the layer
-  col.regions = viridis::viridis(100),  # Palette of colors
-  legend = TRUE
-)
-
-# Apply a personalized palette
-custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3", "#a65628")  # Palette manuelle
-map_education <- mapview(
-  us_education,
-  zcol = "years25_graduate_2022",
-  layer.name = "Graduate Education Population (in Million)",
-  col.regions = custom_palette,
-  legend = TRUE
-)
-```
-
-```{r}
-# Display the map
-map_education
-```
-
-<u>Notice that by zooming on each state, you can see the name of it and this will be the case on all the maps</u> <br>
-
--   **Comments:**
-
-    This graphic show that states with low levels of education, specially those in the southern U.S. (for istance Louisiana, Mississippi and Arkansas), correspondz to regions with moderately high quantities of drugs seized. Conversely, some states with a high level of education, such as California, also show significant seizures.
-
-    This may be explained by their high population density and more developed infrastructure for detecting and monitoring drug trafficking, irrespective of education levels. Finally, anomalies emerge in states such as Texas and Arizona, which record significant seizures despite education levels that do not stand out. This situation could reflect their strategic role as transit zones, notably due to their proximity to borders, facilitating drug trafficking.
-
--   **Hypothesis based on Graphics:**
-
-    We may have a potential link between education levels and the drug situation in some regions. In areas where the level of education is relatively low, this could be associated with higher consumption behaviors or an increased prevalence of drug trafficking. However, this relationship isn't universal, and highly dependent on factors such as demographics and regional specificities.
-
-    On the other hand, well-educated states such as California or New York, which record significant seizures, do not necessarily reflect high consumption. Rather, these seizures could be the result of effective surveillance systems and infrastructures capable of intercepting drug trafficking, further highlighting their strategic role in the fight against this phenomenon.
-
-<br> In the following, we proceed to the **cleaning of the data set about drug seizure** that we've already imported. First, we kept only 2022 as this is the only year which we will focus our analysis on, thus we removed all other years.
+### Drug Seizure Data Set
+<br> In the following, we proceed to the cleaning of the data set about drug seizure that we've already imported. First, we kept only 2022 as this is the only year which we will focus our analysis on, thus we removed all other years.
 
 ```{r}
 #| message: false
@@ -359,9 +302,6 @@ drug_plot <- ggplot(drug_summary, aes(
 
 ggplotly(drug_plot, tooltip = "text")
 ```
-
-<br> These two graphs highlight the quantity and events of drugs seized per type in the USA, showcasing methamphetamine, khat, and marijuana as the most seized drugs. While fentanyl accounts for a smaller proportion of the total quantity seized, its public health impact is disproportionately high due to its potency and contribution to overdose deaths. <br>
-
 #### Figure 2: Quantity seized per drug in the USA.
 
 ```{r}
@@ -390,6 +330,8 @@ drug_plot <- ggplot(drug_summary_2, aes(
 ggplotly(drug_plot, tooltip = "text")
 ```
 
+<br> These two graphs highlight the quantity and events of drugs seized per type in the USA, showcasing methamphetamine, khat, and marijuana as the most seized drugs. While fentanyl accounts for a smaller proportion of the total quantity seized, its public health impact is disproportionately high due to its potency and contribution to overdose deaths. <br>
+<br>
 <br> Continuing with the cleaning of the data set about drug seizure, we keep only the drug type "Fentanyl" as it is the core of our research focus:
 
 ```{r}
@@ -461,52 +403,8 @@ kable(
   escape = FALSE
 )
 ```
-
-#### Map of Drug Seizure in USA
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
-# The order of the steps and the steps themselves are the same as the ones we used for the education data set
-library(sf)
-library(mapview)
-library(dplyr)
-library(rnaturalearth)
-library(rnaturalearthhires)
-
-# Step 1
-us_states <- ne_states(country = "United States of America", returnclass = "sf") %>%
-  rename(states = postal) 
-
-# Step 2
-us_drug_seizure <- us_states %>%
-  left_join(drug_seizure_clean, by = "states") 
-
-# Step 3
-glimpse(us_drug_seizure)
-
-# Step 4:
-map_drug_seizure <- mapview(
-  us_drug_seizure,
-  zcol = "total_quantity_proportion",
-  layer.name = "Drug Seizure Quantity (lbs)",
-  col.regions = custom_palette,
-  legend = TRUE
-  )  # Popup displaying the abbreviation and quantity
-
-# Step 5:
-custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3", "#a65628")  
-
-```
-
-```{r}
-# Displaying the map
-map_drug_seizure
-```
-
--   **Comments:**
-
-    This map illustrates the quantity of drugs seized (in pounds) by state in the United States. The data show significant variations between states. California and Arizona record the highest quantities, exceeding 7,000 pounds respectively. On the other hand, several states, notably Alaska, show unavailable data or negligible quantities. The disparities observed may reflect factors such as the importance of drug trafficking routes, the proximity of borders and the priorities of law enforcement in each region. Due to this lack of some information, our analysis will focus on comparing drug seizure quantities across specific regions, including the northern, southern, eastern, and western borders of the United States. This approach allows us to identify regional patterns despite the missing data.
-
-<br> Below is the **cleaning of the lethal overdoses data set**. First of all, we filter in order to keep only the year 2022. then, we remove the column URL, which we won't use for our analysis and finally, we change the code for "District of Columbia" with its code.
+### Lethal overdoses Data Set
+<br> Below is the cleaning of the lethal overdoses data set. First of all, we filter in order to keep only the year 2022. then, we remove the column URL, which we won't use for our analysis and finally, we change the code for "District of Columbia" with its code.
 
 ```{r}
 #| message: false
@@ -550,6 +448,113 @@ kable(
 )
 ```
 
+## Graphical Visualizations
+
+#### Map of Education for the Graduated students in US
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+#| message: false
+# Load necessary libraries
+library(sf)
+library(mapview)
+library(dplyr)
+library(rnaturalearth)
+library(rnaturalearthhires)
+
+# Load the geographical data of the United States
+us_states <- ne_states(country = "United States of America", returnclass = "sf") %>%
+  rename(states = postal)  # Harmonization of the columns for the jointure
+
+# Jointure of the education data set with the geographical data of the USA
+us_education <- us_states %>%
+  left_join(education_clean, by = "states")  # Jointure via the harmonized column `states`
+
+# Just checking if the jointure worked
+glimpse(us_education)
+
+# Creation of an interactive map with mapview
+map_education <- mapview(
+  us_education,
+  zcol = "years25_graduate_2022",  # Column used for the color
+  layer.name = "Graduate Education Population (in Million)",  # Name of the layer
+  col.regions = viridis::viridis(100),  # Palette of colors
+  legend = TRUE
+)
+
+# Apply a personalized palette
+custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3", "#a65628")  # Palette manuelle
+map_education <- mapview(
+  us_education,
+  zcol = "years25_graduate_2022",
+  layer.name = "Graduate Education Population (in Million)",
+  col.regions = custom_palette,
+  legend = TRUE
+)
+```
+
+```{r}
+# Display the map
+map_education
+```
+
+<u>Notice that by zooming on each state, you can see the name of it and this will be the case on all the maps</u> <br>
+
+-   **Comments:**
+
+    This graphic show that states with low levels of education, specially those in the southern U.S. (for istance Louisiana, Mississippi and Arkansas), correspondz to regions with moderately high quantities of drugs seized. Conversely, some states with a high level of education, such as California, also show significant seizures.
+
+    This may be explained by their high population density and more developed infrastructure for detecting and monitoring drug trafficking, irrespective of education levels. Finally, anomalies emerge in states such as Texas and Arizona, which record significant seizures despite education levels that do not stand out. This situation could reflect their strategic role as transit zones, notably due to their proximity to borders, facilitating drug trafficking.
+
+-   **Hypothesis based on Graphics:**
+
+    We may have a potential link between education levels and the drug situation in some regions. In areas where the level of education is relatively low, this could be associated with higher consumption behaviors or an increased prevalence of drug trafficking. However, this relationship isn't universal, and highly dependent on factors such as demographics and regional specificities.
+
+    On the other hand, well-educated states such as California or New York, which record significant seizures, do not necessarily reflect high consumption. Rather, these seizures could be the result of effective surveillance systems and infrastructures capable of intercepting drug trafficking, further highlighting their strategic role in the fight against this phenomenon.
+
+#### Map of Drug Seizure in USA
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+# The order of the steps and the steps themselves are the same as the ones we used for the education data set
+library(sf)
+library(mapview)
+library(dplyr)
+library(rnaturalearth)
+library(rnaturalearthhires)
+
+# Step 1
+us_states <- ne_states(country = "United States of America", returnclass = "sf") %>%
+  rename(states = postal) 
+
+# Step 2
+us_drug_seizure <- us_states %>%
+  left_join(drug_seizure_clean, by = "states") 
+
+# Step 3
+glimpse(us_drug_seizure)
+
+# Step 4:
+map_drug_seizure <- mapview(
+  us_drug_seizure,
+  zcol = "total_quantity_proportion",
+  layer.name = "Drug Seizure Quantity (lbs)",
+  col.regions = custom_palette,
+  legend = TRUE
+  )  # Popup displaying the abbreviation and quantity
+
+# Step 5:
+custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3", "#a65628")  
+
+```
+```{r}
+# Displaying the map
+map_drug_seizure
+```
+
+-   **Comments:**
+
+    This map illustrates the quantity of drugs seized (in pounds) by state in the United States. The data show significant variations between states. California and Arizona record the highest quantities, exceeding 7,000 pounds respectively. On the other hand, several states, notably Alaska, show unavailable data or negligible quantities. The disparities observed may reflect factors such as the importance of drug trafficking routes, the proximity of borders and the priorities of law enforcement in each region. Due to this lack of some information, our analysis will focus on comparing drug seizure quantities across specific regions, including the northern, southern, eastern, and western borders of the United States. This approach allows us to identify regional patterns despite the missing data.
+
+
 #### Map of Lethal Overdoses in USA
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
@@ -592,16 +597,15 @@ map_overdose <- mapview(
   legend = TRUE
 )
 ```
-
 ```{r}
 map_overdose
 ```
-
 -   **Comments:**
 
     This graph shows overdose rates by state in 2022, with colors ranging from green (low rates) to red/purple (high rates). The highest rates are seen in states such as West Virginia, Tennessee, and Maryland, often exceeding 70 overdoses per 100,000 inhabitants, while the lowest rates are found mainly in western states, such as South Dakota or Nebrasaka, with values below 20. This distribution highlights a marked regional disparity in the U.S. overdose crisis.
+<br>
 
-### Joining
+## Joining
 
 ```{r}
 # Perform the inner join on the three datasets using the 'states' variable
