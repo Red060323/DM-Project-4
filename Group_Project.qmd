@@ -625,4 +625,46 @@ kable(
 
 The resulting dataset contains the following variables: <br> <br> - **states**: Abbreviations for each state. <br> - **total_events**: Total number of drug seizure events. <br> - **total_quantity**: Total quantity of drugs seized (in pounds). <br> - **total_events_proportion**: The proportion of drug seizure events for each state relative to the USA. <br> - **total_quantity_proportion**: The proportion of drug quantity seized for each state relative to the USA. <br> - Additional **education-related variables** (e.g., levels of education attainment by age groups) <br> -**RATE and DEATHS**: Provide information about the overdose death rate as well as the the number of deaths because of overdose, both per 100,000 inhabitants for each state. <br>
 
-This merged dataset facilitates comprehensive cross-sectional analysis, integrating drug seizures, education levels, and overdose metrics for the states in common.
+This merged dataset facilitates comprehensive cross-sectional analysis, integrating drug seizures, education levels, and overdose metrics for the states in common.<br>
+
+## Descriptive Analysis
+The script processes the `joined_dataset` variable by first renaming key variables to improve clarity: `total_events` becomes `total_seizure_events`, `total_quantity`becomes `total_quantity_seized`, `RATE` becomes `overdose_rate`, and `DEATHS` becomes `overdose_deaths`. Next, the observation corresponding to the USA is excluded, leaving only state-level data for analysis.
+<br>
+Once the data is filtered, classifications are applied to the variables based on their national medians:
+<br>
+Education Variables: classified as "success" if their values are above the national median and "failure" otherwise.
+Overdose Variables: classified as "success" if their values are below the national median and "failure" otherwise.
+Drug Seizure Variables: classified as "success" if their values are below the national median and "failure" otherwise.
+```{r}
+# Rename variables
+success_status_by_median <- joined_dataset %>%
+  rename(
+    total_seizure_events = total_events,
+    total_quantity_seized = total_quantity,
+    overdose_rate = RATE,
+    overdose_deaths = DEATHS
+  )
+
+# Exclude USA observation and apply transformations
+success_status_by_median <- success_status_by_median %>%
+  filter(states != "USA") %>%  # Remove USA observation
+  mutate(
+    # Education variables: "success" if > median, otherwise "failure"
+    across(contains("2022"), ~ ifelse(. > median(., na.rm = TRUE), "success", "failure")),
+
+    # Overdose variables: "success" if < median, otherwise "failure"
+    across(matches("overdose_rate|overdose_deaths"), ~ ifelse(. < median(., na.rm = TRUE), "success", "failure")),
+
+    # Drug seizure variables: "success" if < median, otherwise "failure"
+    across(starts_with("total"), ~ ifelse(. < median(., na.rm = TRUE), "success", "failure"))
+  )
+
+
+kable(
+  head(success_status_by_median, 3), 
+  caption = " Classification of Success and Failure Based on Median for Education, Overdoses, and Drug Seizures Variables", 
+  escape = FALSE
+)
+
+```
+
