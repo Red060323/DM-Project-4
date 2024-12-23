@@ -667,4 +667,149 @@ kable(
 )
 
 ```
+<br>
+This step of the descriptive analysis focuses on categorizing states into "success" and "failure" groups based on their performance relative to the **mean** for three key metrics: education, overdose rates, and drug seizures. The analysis begins by renaming variables for clarity, filtering out the USA observation to focus solely on state-level data, and applying transformations to classify each state. Education variables are labeled as "success" if they exceed the mean, while overdose and drug seizure variables are labeled as "success" if they fall below the mean. 
+<br>
+```{r}
+# Rename variables
+joined_dataset <- joined_dataset %>%
+  rename(
+    total_seizure_events = total_events,
+    total_quantity_seized = total_quantity,
+    overdose_rate = RATE,
+    overdose_deaths = DEATHS
+  )
 
+# Exclude USA observation and apply transformations
+success_status_by_mean <- joined_dataset %>%
+  filter(states != "USA") %>%  # Remove USA observation
+  mutate(
+    # Education variables: "success" if > mean, otherwise "failure"
+    across(contains("2022"), ~ ifelse(. > mean(., na.rm = TRUE), "success", "failure")),
+
+    # Overdose variables: "success" if < mean, otherwise "failure"
+    across(matches("overdose_rate|overdose_deaths"), ~ ifelse(. < mean(., na.rm = TRUE), "success", "failure")),
+
+    # Drug seizure variables: "success" if < mean, otherwise "failure"
+    across(starts_with("total"), ~ ifelse(. < mean(., na.rm = TRUE), "success", "failure"))
+  )
+
+kable(
+  head(success_status_by_median, 3), 
+  caption = " Classification of Success and Failure Based on Mean for Education, Overdoses, and Drug Seizures Variables", 
+  escape = FALSE
+)
+```
+The counts of "success" and "failure" are then summarized for each category.
+```{r}
+# Summarising success and failure counts
+summary_success_status_by_mean <- success_status_by_mean %>%
+  summarise(
+    education_success = sum(across(contains("2022"), ~ . == "success"), na.rm = TRUE),
+    education_failure = sum(across(contains("2022"), ~ . == "failure"), na.rm = TRUE),
+    overdose_success = sum(across(matches("overdose_rate|overdose_deaths"), ~ . == "success"), na.rm = TRUE),
+    overdose_failure = sum(across(matches("overdose_rate|overdose_deaths"), ~ . == "failure"), na.rm = TRUE),
+    drug_seizure_success = sum(across(starts_with("total"), ~ . == "success"), na.rm = TRUE),
+    drug_seizure_failure = sum(across(starts_with("total"), ~ . == "failure"), na.rm = TRUE)
+  )
+```
+Finally, a proportional bar chart is created to visually represent the distribution of "success" and "failure" across the three metrics, using distinct colors for each status. This visualization highlights the relative performance of states within each category, providing an intuitive overview of the results.
+```{r}
+# Prepare data for plotting directly from summary_success_status
+plot_data <- data.frame(
+  Category = c("Education", "Education", "Overdose", "Overdose", "Drug Seizure", "Drug Seizure"),
+  Status = c("Success", "Failure", "Success", "Failure", "Success", "Failure"),
+  Count = c(
+    summary_success_status_by_mean$education_success,
+    summary_success_status_by_mean$education_failure,
+    summary_success_status_by_mean$overdose_success,
+    summary_success_status_by_mean$overdose_failure,
+    summary_success_status_by_mean$drug_seizure_success,
+    summary_success_status_by_mean$drug_seizure_failure
+  )
+)
+
+# Create the bar chart
+ggplot(plot_data, aes(x = Category, y = Count, fill = Status)) +
+  geom_bar(stat = "identity", position = "fill", width = 0.6) + # position = "fill" makes the bars proportional
+  scale_fill_manual(values = c("Success" = "steelblue", "Failure" = "tomato")) + # Custom colors
+  labs(
+    title = "Proportion of Success and Failure by Category",
+    x = "Category",
+    y = "Proportion",
+    fill = "Status"
+  ) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent_format()) # Show proportions as percentages
+```
+-   **Comments:**
+
+    The high proportion of "success" in the Drug Seizure category suggests that most states have relatively low drug seizure quantities and events compared to the mean. This could indicate effective enforcement or that fentanyl distribution is not uniform across states. However, the correlation between drug seizures and overdoses needs further exploration—states with fewer seizures might still have high overdose rates due to the potency and availability of fentanyl.<br>
+    <br>
+    The Education category shows an almost equal distribution of "success" and "failure." This highlights significant variability in education levels across states, with some performing above the mean and others falling behind. For the research question, this variation in education levels could be crucial for understanding differences in overdose rates. States with higher education success may have populations better equipped to avoid risky behaviors or access preventive measures, potentially correlating with lower overdose rates.<br> 
+    <br>
+    The Overdose category shows a higher proportion of "failure," indicating that many states have overdose rates or deaths exceeding the mean. This finding emphasizes that fentanyl overdoses remain a widespread problem, disproportionately affecting certain states. It suggests that efforts to mitigate overdoses need to focus on a majority of states where fentanyl use has escalated. <br> 
+    <br>
+    The variability observed across education and overdose categories suggests a potential relationship between the two. States with high education failure (e.g., lower levels of high school or college attainment) might correspond to those with higher overdose failure, reflecting possible socioeconomic and educational disparities contributing to the fentanyl crisis. Conversely, states with education success might demonstrate better public health outcomes, including lower overdose rates. We will developp this later.
+    
+<br> We are now starting to examine the Relationship Between Education and Overdose Rates. (developp)
+```{r, message = FALSE}
+joined_dataset <- joined_dataset %>%
+  filter(states != "USA")
+
+ggplot(joined_dataset, aes(x = years25_graduate_2022, y = overdose_rate)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = "Relationship Between Graduate's Degree Number and Overdose Rates",
+    x = "Number of graduate's Degree",
+    y = "Overdose Rate (per 100,000)"
+  )
+```
+-   **Comments:**
+
+    This graph highlights that higher educational attainment (measured by graduate degrees) does not necessarily equate to lower fentanyl overdose rates. It implies that education, while important, may interact with other socioeconomic or regional factors to influence overdose rates.
+    
+```{r, message = FALSE}
+joined_dataset <- joined_dataset %>%
+  filter(states != "USA")
+
+ggplot(joined_dataset, aes(x = years25_graduate_2022, y = overdose_deaths)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = "Relationship Between Graduate's Degree Number and Overdose Quantity",
+    x = "Number of graduate's Degree",
+    y = "Number of Overdose Deaths (per 100,000)"
+  )
+```
+
+```{r, message = FALSE}
+joined_dataset <- joined_dataset %>%
+  filter(states != "USA")
+
+ggplot(joined_dataset, aes(x = years25_bachelor_2022, y = overdose_rate)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = "Relationship Between Bachelor's Degree Number and Overdose Rates",
+    x = "Number of bachelor's Degree",
+    y = "Overdose Rate (per 100,000)"
+  )
+```
+```{r, message = FALSE}
+joined_dataset <- joined_dataset %>%
+  filter(states != "USA")
+
+ggplot(joined_dataset, aes(x = years25_bachelor_2022, y = overdose_deaths)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = "Relationship Between Bachelor's Degree Number and Quantity of Overdose",
+    x = "Number of bachelor's Degree",
+    y = "Number of Overdose Deaths (per 100,000)"
+  )
+```
+-   **Comments:**
+
+    The red trendline shows a clear negative slope, indicating an inverse relationship between the number of bachelor's degrees and overdose deaths. States with higher numbers of bachelor's degrees tend to have fewer overdose deaths, suggesting that higher education levels may correlate with better health outcomes or reduced drug-related mortality.
