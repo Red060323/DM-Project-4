@@ -161,7 +161,9 @@ kable(summary_table_3, caption = "Summary of the Education Dataset:", escape = F
 ```
 
 ## Cleaning
+
 ### Education Data Set
+
 The first steps of cleaning just below are done on the education data set. We realized that the name of the column variables were not properly aligned with their respective values compared to the initial data set in xlsx format. Thus, we had to change them. After that, we removed column 12 since this was not useful for our analysis, the latest was about people who did associate degrees. The second step of cleaning on the education dataset was to remove the column that concerns the year 2012 since our analysis is focused on the year 2022 only. Then, we had to fix the fact that our numeric columns are stored as characters, likely due to the use of commas as decimal or thousand separators.
 
 ```{r}
@@ -227,7 +229,9 @@ kable(
 )
 
 ```
+
 ### Drug Seizure Data Set
+
 <br> In the following, we proceed to the cleaning of the data set about drug seizure that we've already imported. First, we kept only 2022 as this is the only year which we will focus our analysis on, thus we removed all other years.
 
 ```{r}
@@ -302,6 +306,7 @@ drug_plot <- ggplot(drug_summary, aes(
 
 ggplotly(drug_plot, tooltip = "text")
 ```
+
 #### Figure 2: Quantity seized per drug in the USA.
 
 ```{r}
@@ -330,9 +335,7 @@ drug_plot <- ggplot(drug_summary_2, aes(
 ggplotly(drug_plot, tooltip = "text")
 ```
 
-<br> These two graphs highlight the quantity and events of drugs seized per type in the USA, showcasing methamphetamine, khat, and marijuana as the most seized drugs. While fentanyl accounts for a smaller proportion of the total quantity seized, its public health impact is disproportionately high due to its potency and contribution to overdose deaths. <br>
-<br>
-<br> Continuing with the cleaning of the data set about drug seizure, we keep only the drug type "Fentanyl" as it is the core of our research focus:
+<br> These two graphs highlight the quantity and events of drugs seized per type in the USA, showcasing methamphetamine, khat, and marijuana as the most seized drugs. While fentanyl accounts for a smaller proportion of the total quantity seized, its public health impact is disproportionately high due to its potency and contribution to overdose deaths. <br> <br> <br> Continuing with the cleaning of the data set about drug seizure, we keep only the drug type "Fentanyl" as it is the core of our research focus:
 
 ```{r}
 # Filter for only Fentanyl drug type
@@ -403,7 +406,9 @@ kable(
   escape = FALSE
 )
 ```
+
 ### Lethal overdoses Data Set
+
 <br> Below is the cleaning of the lethal overdoses data set. First of all, we filter in order to keep only the year 2022. then, we remove the column URL, which we won't use for our analysis and finally, we change the code for "District of Columbia" with its code.
 
 ```{r}
@@ -545,6 +550,7 @@ map_drug_seizure <- mapview(
 custom_palette <- c("#4daf4a", "#377eb8", "#ff7f00", "#984ea3", "#a65628")  
 
 ```
+
 ```{r}
 # Displaying the map
 map_drug_seizure
@@ -553,7 +559,6 @@ map_drug_seizure
 -   **Comments:**
 
     This map illustrates the quantity of drugs seized (in pounds) by state in the United States. The data show significant variations between states. California and Arizona record the highest quantities, exceeding 7,000 pounds respectively. On the other hand, several states, notably Alaska, show unavailable data or negligible quantities. The disparities observed may reflect factors such as the importance of drug trafficking routes, the proximity of borders and the priorities of law enforcement in each region. Due to this lack of some information, our analysis will focus on comparing drug seizure quantities across specific regions, including the northern, southern, eastern, and western borders of the United States. This approach allows us to identify regional patterns despite the missing data.
-
 
 #### Map of Lethal Overdoses in USA
 
@@ -597,13 +602,14 @@ map_overdose <- mapview(
   legend = TRUE
 )
 ```
+
 ```{r}
 map_overdose
 ```
+
 -   **Comments:**
 
-    This graph shows overdose rates by state in 2022, with colors ranging from green (low rates) to red/purple (high rates). The highest rates are seen in states such as West Virginia, Tennessee, and Maryland, often exceeding 70 overdoses per 100,000 inhabitants, while the lowest rates are found mainly in western states, such as South Dakota or Nebrasaka, with values below 20. This distribution highlights a marked regional disparity in the U.S. overdose crisis.
-<br>
+    This graph shows overdose rates by state in 2022, with colors ranging from green (low rates) to red/purple (high rates). The highest rates are seen in states such as West Virginia, Tennessee, and Maryland, often exceeding 70 overdoses per 100,000 inhabitants, while the lowest rates are found mainly in western states, such as South Dakota or Nebrasaka, with values below 20. This distribution highlights a marked regional disparity in the U.S. overdose crisis. <br>
 
 ## Joining
 
@@ -627,14 +633,47 @@ The resulting dataset contains the following variables: <br> <br> - **states**: 
 
 This merged dataset facilitates comprehensive cross-sectional analysis, integrating drug seizures, education levels, and overdose metrics for the states in common.<br>
 
+## Reaserch Question
+
+## Description of Data set:
+
 ## Descriptive Analysis
-The script processes the `joined_dataset` variable by first renaming key variables to improve clarity: `total_events` becomes `total_seizure_events`, `total_quantity`becomes `total_quantity_seized`, `RATE` becomes `overdose_rate`, and `DEATHS` becomes `overdose_deaths`. Next, the observation corresponding to the USA is excluded, leaving only state-level data for analysis.
-<br>
-Once the data is filtered, classifications are applied to the variables based on their national medians:
-<br>
-Education Variables: classified as "success" if their values are above the national median and "failure" otherwise.
-Overdose Variables: classified as "success" if their values are below the national median and "failure" otherwise.
-Drug Seizure Variables: classified as "success" if their values are below the national median and "failure" otherwise.
+
+The script processes the `joined_dataset` variable by first renaming key variables to improve clarity: `total_events` becomes `total_seizure_events`, `total_quantity`becomes `total_quantity_seized`, `RATE` becomes `overdose_rate`, and `DEATHS` becomes `overdose_deaths`. Next, the observation corresponding to the USA is excluded, leaving only state-level data for analysis. <br> Once the data is filtered, we begin with an exhaustive descriptive analysis that includes all relevant statistical measures, enabling in-depth interpretation.
+
+```{r}
+#| message: false
+#| cache: false
+
+library(psych)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# Detailed Table of the Descriptive Analysis (we eliminate character variable 'State)
+numeric_dataset <- joined_dataset %>%
+  select_if(is.numeric)  
+summary_table <- describe(numeric_dataset) %>%
+    mutate_if(is.numeric, ~ round(., 2))
+
+
+# Improve the table for the Rendering
+kable(summary_table, format = "html", align = "c", caption = "Descriptive Analysis of Variables") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+    full_width = TRUE, 
+    font_size = 14
+  ) %>%
+  column_spec(1, bold = TRUE, width = "20em", background = "#f5f5f5") %>%
+  row_spec(0, bold = TRUE, background = "#d3d3d3") %>%
+  scroll_box(height = "500px")
+
+```
+
+-   **Discussion**:
+
+So, let's take a closer look at the statistical measure of the median. Here, the variables are classified according to their national median: <br> Education Variables: classified as "success" if their values are above the national median and "failure" otherwise. Overdose Variables: classified as "success" if their values are below the national median and "failure" otherwise. Drug Seizure Variables: classified as "success" if their values are below the national median and "failure" otherwise.
+
 ```{r}
 # Rename variables
 success_status_by_median <- joined_dataset %>%
@@ -667,9 +706,9 @@ kable(
 )
 
 ```
-<br>
-This step of the descriptive analysis focuses on categorizing states into "success" and "failure" groups based on their performance relative to the **mean** for three key metrics: education, overdose rates, and drug seizures. The analysis begins by renaming variables for clarity, filtering out the USA observation to focus solely on state-level data, and applying transformations to classify each state. Education variables are labeled as "success" if they exceed the mean, while overdose and drug seizure variables are labeled as "success" if they fall below the mean. 
-<br>
+
+<br> This step of the descriptive analysis focuses on categorizing states into "success" and "failure" groups based on their performance relative to the **mean** for three key metrics: education, overdose rates, and drug seizures. The analysis begins by renaming variables for clarity, filtering out the USA observation to focus solely on state-level data, and applying transformations to classify each state. Education variables are labeled as "success" if they exceed the mean, while overdose and drug seizure variables are labeled as "success" if they fall below the mean. <br>
+
 ```{r}
 # Rename variables
 joined_dataset <- joined_dataset %>%
@@ -700,7 +739,9 @@ kable(
   escape = FALSE
 )
 ```
+
 The counts of "success" and "failure" are then summarized for each category.
+
 ```{r}
 # Summarising success and failure counts
 summary_success_status_by_mean <- success_status_by_mean %>%
@@ -713,7 +754,9 @@ summary_success_status_by_mean <- success_status_by_mean %>%
     drug_seizure_failure = sum(across(starts_with("total"), ~ . == "failure"), na.rm = TRUE)
   )
 ```
+
 Finally, a proportional bar chart is created to visually represent the distribution of "success" and "failure" across the three metrics, using distinct colors for each status. This visualization highlights the relative performance of states within each category, providing an intuitive overview of the results.
+
 ```{r}
 # Prepare data for plotting directly from summary_success_status
 plot_data <- data.frame(
@@ -742,17 +785,13 @@ ggplot(plot_data, aes(x = Category, y = Count, fill = Status)) +
   theme_minimal() +
   scale_y_continuous(labels = scales::percent_format()) # Show proportions as percentages
 ```
+
 -   **Comments:**
 
-    The high proportion of "success" in the Drug Seizure category suggests that most states have relatively low drug seizure quantities and events compared to the mean. This could indicate effective enforcement or that fentanyl distribution is not uniform across states. However, the correlation between drug seizures and overdoses needs further exploration—states with fewer seizures might still have high overdose rates due to the potency and availability of fentanyl.<br>
-    <br>
-    The Education category shows an almost equal distribution of "success" and "failure." This highlights significant variability in education levels across states, with some performing above the mean and others falling behind. For the research question, this variation in education levels could be crucial for understanding differences in overdose rates. States with higher education success may have populations better equipped to avoid risky behaviors or access preventive measures, potentially correlating with lower overdose rates.<br> 
-    <br>
-    The Overdose category shows a higher proportion of "failure," indicating that many states have overdose rates or deaths exceeding the mean. This finding emphasizes that fentanyl overdoses remain a widespread problem, disproportionately affecting certain states. It suggests that efforts to mitigate overdoses need to focus on a majority of states where fentanyl use has escalated. <br> 
-    <br>
-    The variability observed across education and overdose categories suggests a potential relationship between the two. States with high education failure (e.g., lower levels of high school or college attainment) might correspond to those with higher overdose failure, reflecting possible socioeconomic and educational disparities contributing to the fentanyl crisis. Conversely, states with education success might demonstrate better public health outcomes, including lower overdose rates. We will developp this later.
-    
+    The high proportion of "success" in the Drug Seizure category suggests that most states have relatively low drug seizure quantities and events compared to the mean. This could indicate effective enforcement or that fentanyl distribution is not uniform across states. However, the correlation between drug seizures and overdoses needs further exploration—states with fewer seizures might still have high overdose rates due to the potency and availability of fentanyl.<br> <br> The Education category shows an almost equal distribution of "success" and "failure." This highlights significant variability in education levels across states, with some performing above the mean and others falling behind. For the research question, this variation in education levels could be crucial for understanding differences in overdose rates. States with higher education success may have populations better equipped to avoid risky behaviors or access preventive measures, potentially correlating with lower overdose rates.<br> <br> The Overdose category shows a higher proportion of "failure," indicating that many states have overdose rates or deaths exceeding the mean. This finding emphasizes that fentanyl overdoses remain a widespread problem, disproportionately affecting certain states. It suggests that efforts to mitigate overdoses need to focus on a majority of states where fentanyl use has escalated. <br> <br> The variability observed across education and overdose categories suggests a potential relationship between the two. States with high education failure (e.g., lower levels of high school or college attainment) might correspond to those with higher overdose failure, reflecting possible socioeconomic and educational disparities contributing to the fentanyl crisis. Conversely, states with education success might demonstrate better public health outcomes, including lower overdose rates. We will developp this later.
+
 <br> We are now starting to examine the Relationship Between Education and Overdose Rates. (developp)
+
 ```{r, message = FALSE}
 joined_dataset <- joined_dataset %>%
   filter(states != "USA")
@@ -766,10 +805,11 @@ ggplot(joined_dataset, aes(x = years25_graduate_2022, y = overdose_rate)) +
     y = "Overdose Rate (per 100,000)"
   )
 ```
+
 -   **Comments:**
 
     This graph highlights that higher educational attainment (measured by graduate degrees) does not necessarily equate to lower fentanyl overdose rates. It implies that education, while important, may interact with other socioeconomic or regional factors to influence overdose rates.
-    
+
 ```{r, message = FALSE}
 joined_dataset <- joined_dataset %>%
   filter(states != "USA")
@@ -797,6 +837,7 @@ ggplot(joined_dataset, aes(x = years25_bachelor_2022, y = overdose_rate)) +
     y = "Overdose Rate (per 100,000)"
   )
 ```
+
 ```{r, message = FALSE}
 joined_dataset <- joined_dataset %>%
   filter(states != "USA")
@@ -810,6 +851,7 @@ ggplot(joined_dataset, aes(x = years25_bachelor_2022, y = overdose_deaths)) +
     y = "Number of Overdose Deaths (per 100,000)"
   )
 ```
+
 -   **Comments:**
 
     The red trendline shows a clear negative slope, indicating an inverse relationship between the number of bachelor's degrees and overdose deaths. States with higher numbers of bachelor's degrees tend to have fewer overdose deaths, suggesting that higher education levels may correlate with better health outcomes or reduced drug-related mortality.
