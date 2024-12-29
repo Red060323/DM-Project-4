@@ -639,9 +639,8 @@ This merged dataset facilitates comprehensive cross-sectional analysis, integrat
 
 ## Descriptive Analysis
 
-The script processes the `joined_dataset` variable by first renaming key variables to improve clarity: `total_events` becomes `total_seizure_events`, `total_quantity`becomes `total_quantity_seized`, `RATE` becomes `overdose_rate`, and `DEATHS` becomes `overdose_deaths`. Next, the observation corresponding to the USA is excluded, leaving only state-level data for analysis. 
-<br> <br>
-Once the data is filtered, we begin with an exhaustive descriptive analysis that includes all relevant statistical measures, enabling in-depth interpretation.
+The script processes the `joined_dataset` variable by first renaming key variables to improve clarity: `total_events` becomes `total_seizure_events`, `total_quantity`becomes `total_quantity_seized`, `RATE` becomes `overdose_rate`, and `DEATHS` becomes `overdose_deaths`. Next, the observation corresponding to the USA is excluded, leaving only state-level data for analysis. <br> <br> Once the data is filtered, we begin with an exhaustive descriptive analysis that includes all relevant statistical measures, enabling in-depth interpretation.
+
 ```{r}
 # Rename variables
 joined_dataset <- joined_dataset %>%
@@ -683,10 +682,13 @@ kable(summary_table, format = "html", align = "c", caption = "Descriptive Analys
 ```
 
 -   **Discussion**:
+    -   For the variable `total_quantity_seized` , the *mean* is **180.63**, indicating a relatively high average quantity of drugs seized in the USA . The *standard deviation* of **312.60** suggests great variability in seizures, indicating that some seizures are much larger than the average. The median, at **4.50**, is significantly lower than the mean, highlighting an asymmetrical distribution, as evidenced by the skew of **5.78**, showing a strong positive asymmetry. This implies that there are several very large seizures pulling the average upwards. Kurtosis, at **41.31**, shows a very sharp distribution with heavy tails, suggesting that extreme values are frequent. 
 
-So, let's take a closer look at the statistical measure of the median. Here, the variables are classified according to their national median: <br><br> **Education Variables**: classified as "success" if their values are above the national median and "failure" otherwise. <br><br>
-**Overdose Variables**: classified as "success" if their values are below the national median and "failure" otherwise. <br><br>
-**Drug Seizure Variables**: classified as "success" if their values are below the national median and "failure" otherwise.
+        Concerning education, the  variable **`years25_atleast_highschool_2022`**, has a mean of 12.86 with a standard deviation of **1.03**, indicating that the majority of individuals have completed at least high school with little variability. The median is **13**, which is close to the mean, and the skew is **0.15**, indicating an almost symmetrical distribution.  In contrast, for**\`years25_bachelor_2022\`**, the mean is **2.12** with a standard deviation of **0.49**, showing fewer people with a bachelor's degree, and a median of 2. The kurtosis of **2.50** indicates a distribution close to normal. For **\`years25_graduate_2022\`**, the mean is **0.37**, and although the standard deviation is **0.49**, this demonstrates that few people have a higher degree, with a skew of **2.14**, highlighting a concentration of low values. This suggests that higher-level diplomas are much less common.
+
+        Finally the variable **`overdose_deaths`**, with a *mean* of **13.80** indicates an average number of fatal overdoses. The standard deviation of **27.69** highlights a high variability in overdose deaths, which is a very significant and alarming. The median is **5.50**, notably lower than the mean, indicating a strong positive  asymetry, as indicated by the skew of **5.29**. This suggests that most values are relatively low, but a few extreme cases of overdose deaths pull the mean upwards. The kurtosis of **36.76** indicates a very sharp distribution with heavy tails, showing that extreme values of overdose deaths are frequent. This may call for targeted interventions to treat extreme cases and better understand the factors underlying these deaths.
+
+So, let's take a closer look at the statistical measure of the median. Here, the variables are classified according to their national median: <br><br> **Education Variables**: classified as "success" if their values are above the national median and "failure" otherwise. <br><br> **Overdose Variables**: classified as "success" if their values are below the national median and "failure" otherwise. <br><br> **Drug Seizure Variables**: classified as "success" if their values are below the national median and "failure" otherwise.
 
 ```{r}
 # Exclude USA observation and apply transformations
@@ -787,6 +789,7 @@ ggplot(plot_data, aes(x = Category, y = Count, fill = Status)) +
     The high proportion of "success" in the Drug Seizure category suggests that most states have relatively low drug seizure quantities and events compared to the mean. This could indicate effective enforcement or that fentanyl distribution is not uniform across states. However, the correlation between drug seizures and overdoses needs further exploration—states with fewer seizures might still have high overdose rates due to the potency and availability of fentanyl.<br> <br> The Education category shows an almost equal distribution of "success" and "failure." This highlights significant variability in education levels across states, with some performing above the mean and others falling behind. For the research question, this variation in education levels could be crucial for understanding differences in overdose rates. States with higher education success may have populations better equipped to avoid risky behaviors or access preventive measures, potentially correlating with lower overdose rates.<br> <br> The Overdose category shows a higher proportion of "failure," indicating that many states have overdose rates or deaths exceeding the mean. This finding emphasizes that fentanyl overdoses remain a widespread problem, disproportionately affecting certain states. It suggests that efforts to mitigate overdoses need to focus on a majority of states where fentanyl use has escalated. <br> <br> The variability observed across education and overdose categories suggests a potential relationship between the two. States with high education failure (e.g., lower levels of high school or college attainment) might correspond to those with higher overdose failure, reflecting possible socioeconomic and educational disparities contributing to the fentanyl crisis. Conversely, states with education success might demonstrate better public health outcomes, including lower overdose rates. We will developp this later.
 
 ### Consumption and Overdoses
+
 ```{r, message = FALSE}
 joined_dataset <- joined_dataset %>%
   filter(states != "USA")
@@ -800,6 +803,7 @@ ggplot(joined_dataset, aes(x = total_quantity_seized, y = overdose_deaths)) +
     y = "Number of Overdose Deaths (per 100,000)"
   )
 ```
+
 ```{r}
 # Create the base ggplot with the regression line
 interactive_plot <- ggplot(joined_dataset, aes(x = total_quantity_seized, 
@@ -819,7 +823,9 @@ plotly_plot <- ggplotly(interactive_plot, tooltip = "text")
 # Display the interactive plot
 plotly_plot
 ```
+
 The regression line does not automatically appear so:
+
 ```{r, warning= FALSE}
 # Fit the regression model
 model <- lm(overdose_deaths ~ total_quantity_seized, data = joined_dataset)
@@ -860,11 +866,9 @@ model <- lm(overdose_deaths ~ total_quantity_seized, data = joined_dataset)
 # Summarize the model
 summary(model)
 ```
-The regression analysis reveals a statistically significant positive relationship between the quantity of fentanyl seized and overdose deaths. The coefficient for fentanyl seizures is 0.6547 (p = 0.03635), indicating that for every unit increase in fentanyl seized, the overdose death rate increases by 0.6547 per 100,000 people. The model explains 31.6% of the variance in overdose deaths (R-squared = 0.3162), highlighting a moderate relationship, though a significant amount of variation remains unexplained. While the model is statistically significant overall (F-statistic p = 0.03635), the residual standard error of 2461 indicates considerable variability in the data. These findings suggest that higher fentanyl seizures may reflect greater fentanyl circulation, contributing to more overdose deaths. 
-<br>
-We are now starting to examine the Relationship Between Education and Overdose Rates. (developp)
-### Overdose and Education
-(we do not keep):
+
+The regression analysis reveals a statistically significant positive relationship between the quantity of fentanyl seized and overdose deaths. The coefficient for fentanyl seizures is 0.6547 (p = 0.03635), indicating that for every unit increase in fentanyl seized, the overdose death rate increases by 0.6547 per 100,000 people. The model explains 31.6% of the variance in overdose deaths (R-squared = 0.3162), highlighting a moderate relationship, though a significant amount of variation remains unexplained. While the model is statistically significant overall (F-statistic p = 0.03635), the residual standard error of 2461 indicates considerable variability in the data. These findings suggest that higher fentanyl seizures may reflect greater fentanyl circulation, contributing to more overdose deaths. <br> We are now starting to examine the Relationship Between Education and Overdose Rates. (developp) \### Overdose and Education (we do not keep):
+
 ```{r, message = FALSE}
 joined_dataset <- joined_dataset %>%
   filter(states != "USA")
@@ -884,6 +888,7 @@ ggplot(joined_dataset, aes(x = years25_graduate_2022, y = overdose_rate)) +
     This graph highlights that higher educational attainment (measured by graduate degrees) does not necessarily equate to lower fentanyl overdose rates. It implies that education, while important, may interact with other socioeconomic or regional factors to influence overdose rates.
 
 (we do not keep):
+
 ```{r, message = FALSE}
 joined_dataset <- joined_dataset %>%
   filter(states != "USA")
@@ -897,7 +902,9 @@ ggplot(joined_dataset, aes(x = years25_graduate_2022, y = overdose_deaths)) +
     y = "Number of Overdose Deaths (per 100,000)"
   )
 ```
+
 (we do not keep):
+
 ```{r, message = FALSE}
 joined_dataset <- joined_dataset %>%
   filter(states != "USA")
@@ -911,7 +918,9 @@ ggplot(joined_dataset, aes(x = years25_bachelor_2022, y = overdose_rate)) +
     y = "Overdose Rate (per 100,000)"
   )
 ```
+
 (we keep):
+
 ```{r, message = FALSE}
 joined_dataset <- joined_dataset %>%
   filter(states != "USA")
@@ -925,7 +934,9 @@ ggplot(joined_dataset, aes(x = years25_bachelor_2022, y = overdose_deaths)) +
     y = "Number of Overdose Deaths (per 100,000)"
   )
 ```
+
 make it interactive:
+
 ```{r, warning= FALSE}
 # Fit the regression model
 model <- lm(overdose_deaths ~ years25_bachelor_2022, data = joined_dataset)
@@ -960,91 +971,208 @@ plotly_plot <- ggplotly(interactive_plot, tooltip = "text")
 # Display the interactive plot
 plotly_plot
 ```
+
 -   **Comments:**
 
-    The red trendline shows a clear negative slope, indicating an inverse relationship between the number of bachelor's degrees and overdose deaths. States with higher numbers of bachelor's degrees tend to have fewer overdose deaths, suggesting that higher education levels may correlate with better health outcomes or reduced drug-related mortality.
-<br>
-The goal here is to check if this negative relationship is statistically significant, using the summary of the linear model.
+    The red trendline shows a clear negative slope, indicating an inverse relationship between the number of bachelor's degrees and overdose deaths. States with higher numbers of bachelor's degrees tend to have fewer overdose deaths, suggesting that higher education levels may correlate with better health outcomes or reduced drug-related mortality. <br> The goal here is to check if this negative relationship is statistically significant, using the summary of the linear model.
+
+    ```{r}
+    # Fit the linear model
+    model <- lm(overdose_deaths ~ years25_bachelor_2022, data = joined_dataset)
+
+    # Summarize the model
+    summary(model)
+    ```
+
+    The regression analysis indicates a **weak negative relationship** between **the number of bachelor’s degrees and overdose rates**, as shown by the coefficient of -0.0001758, suggesting that for every increase of 10,000 bachelor’s degrees, the overdose rate decreases by 1.758 per 100,000 people. However, this relationship is not statistically significant at the 0.05 threshold, with a p-value of 0.098. The model explains only about 21% of the variance in overdose rates (R-squared = 0.2104), highlighting its limited explanatory power, since our goal is to have a R squared around 0,7 to have a reliable model. Also, the residual standard error of 2644 suggests high variability in the data. These results indicate that additional factors beyond education levels, such as economic or healthcare-related variables, likely play a significant role in influencing overdose rates, and their inclusion may improve the model's effectiveness. <br> <br> (celui ci montre que + de diplôme = + d'overdoses)
+
+    ```{r, message = FALSE}
+    joined_dataset <- joined_dataset %>%
+      filter(states != "USA")
+
+    ggplot(joined_dataset, aes(x = `years25_total_bachelor+_2022`, y = overdose_deaths)) +
+      geom_point(color = "blue") +
+      geom_smooth(method = "lm", se = FALSE, color = "red") +
+      labs(
+        title = "Relationship Between the Number of Bachelor's Degree or more and Quantity of Overdose",
+        x = "Number of people who have a Bachelor's Degree or more",
+        y = "Number of Overdose Deaths (per 100,000)"
+      )
+    ```
+
+    (mm chose pr celui ci)
+
+    ```{r, message = FALSE}
+    joined_dataset <- joined_dataset %>%
+      filter(states != "USA")
+
+    ggplot(joined_dataset, aes(x = `years25_total_bachelor+_2022`, y = overdose_rate)) +
+      geom_point(color = "blue") +
+      geom_smooth(method = "lm", se = FALSE, color = "red") +
+      labs(
+        title = "Relationship Between Bachelor's Degree or more Number and Quantity of Overdose",
+        x = "Number of people who have a Bachelor's Degree or more",
+        y = "Overdose Rate (per 100,000)"
+      )
+    ```
+
+    ### Seizure and Education
+
+    Doing the same but with the seizure data set
+
+    ```{r, message = FALSE}
+    joined_dataset <- joined_dataset %>%
+      filter(states != "USA")
+
+    ggplot(joined_dataset, aes(x = years25_graduate_2022, y = total_quantity_seized)) +
+      geom_point(color = "blue") +
+      geom_smooth(method = "lm", se = FALSE, color = "red") +
+      labs(
+        title = "Relationship Between Graduate's Degree Number and the Quantity Seized",
+        x = "Number of graduate's Degree",
+        y = "Total quantity of fentanyl seized"
+      )
+    ```
+
+    Comments:
+
+    ```{r, message = FALSE}
+    joined_dataset <- joined_dataset %>%
+      filter(states != "USA")
+
+    ggplot(joined_dataset, aes(x = years25_bachelor_2022, y = total_quantity_seized)) +
+      geom_point(color = "blue") +
+      geom_smooth(method = "lm", se = FALSE, color = "red") +
+      labs(
+        title = "Relationship Between Bachelor's Degree Number and the Quantity Seized",
+        x = "Number of bechelor's Degree",
+        y = "Total quantity of fentanyl seized"
+      )
+    ```
+
+    Comments: (we do not keep)
+
+    ```{r, message = FALSE}
+    joined_dataset <- joined_dataset %>%
+      filter(states != "USA")
+
+    ggplot(joined_dataset, aes(x = `years25_total_bachelor+_2022`, y = total_quantity_seized)) +
+      geom_point(color = "blue") +
+      geom_smooth(method = "lm", se = FALSE, color = "red") +
+      labs(
+        title = "Relationship Between Number of Bachelor's Degree or more and Quantity of Overdose",
+        x = "Number of bechelor's Degree or more",
+        y = "Total quantity of fentanyl seized"
+      )
+    ```
+
+    Note that we won't perfom the same graph using the total number of seizure events as it doesn't give information on the consumption of fentanyl. In fact, a state X could have a muwhc lower total number of seizure events than state Y and still have a higher quantity seized than state Y.
+
+## Predictive Analysis
+
+### I. Regression model and estimations:
+
+Since our reaserch question is causal, we'll need to characterize and predict the links between our variables. We'll investigate those potential links through the estimation of our regression model. In order to construct our model,
+
+-   [**Dependent variable (Y) :**]{.underline}
+
+**- Overdose_Deaths:** metric that quantifies the number of fatal overdoses
+
+-   [**Independent variables (X):**]{.underline}
+
+**- X1 = Years25_LessHighSchool_2022 :**This variable is expected to have a positive relationship with overdose deaths, as lower education levels may correlate with higher risks of substance misuse and limited access to preventive measures.
+
+**- X2 = Years25_Bachelor_2022 :** Its supposed to have a negative relationship with overdose deaths, since higher education levels may correlate with better socioeconomic status and health outcomes.
+
+**- X3 = Years25_Graduate_2022 :**This variable is also expected to have a negative relationship with overdose deaths, reflecting the potential protective effects of higher education.
+
+**- X4 = Total_Quantity_Seized :**It’s supposed to have positive relationship with overdose deaths, since high quantity seized means that  there is a high consumption of drugs, which yields to higher deathsq
+
+Hence, we get a *multiple linear regression model* such as:
+
 ```{r}
-# Fit the linear model
-model <- lm(overdose_deaths ~ years25_bachelor_2022, data = joined_dataset)
+# Linear regression model
+library(broom)
+regression_model <- lm(overdose_deaths ~ less24years_highschool_2022 + 
+                             years25_LessHighSchool_2022 + 
+                             years25_onlyhighschool_2022 +
+                             years25_bachelor_2022 + 
+                             years25_graduate_2022 + 
+                             total_seizure_events + 
+                             total_quantity_seized,  
+                data = joined_dataset)
 
-# Summarize the model
-summary(model)
+tidy(regression_model) 
 ```
-The regression analysis indicates a **weak negative relationship** between **the number of bachelor’s degrees and overdose rates**, as shown by the coefficient of -0.0001758, suggesting that for every increase of 10,000 bachelor’s degrees, the overdose rate decreases by 1.758 per 100,000 people. However, this relationship is not statistically significant at the 0.05 threshold, with a p-value of 0.098. The model explains only about 21% of the variance in overdose rates (R-squared = 0.2104), highlighting its limited explanatory power, since our goal is to have a R squared around 0,7 to have a reliable model. Also, the residual standard error of 2644 suggests high variability in the data. These results indicate that additional factors beyond education levels, such as economic or healthcare-related variables, likely play a significant role in influencing overdose rates, and their inclusion may improve the model's effectiveness.
-<br>
-<br>
-(celui ci montre que + de diplôme = + d'overdoses)
-```{r, message = FALSE}
-joined_dataset <- joined_dataset %>%
-  filter(states != "USA")
 
-ggplot(joined_dataset, aes(x = `years25_total_bachelor+_2022`, y = overdose_deaths)) +
-  geom_point(color = "blue") +
-  geom_smooth(method = "lm", se = FALSE, color = "red") +
-  labs(
-    title = "Relationship Between the Number of Bachelor's Degree or more and Quantity of Overdose",
-    x = "Number of people who have a Bachelor's Degree or more",
-    y = "Number of Overdose Deaths (per 100,000)"
-  )
-```
-(mm chose pr celui ci)
-```{r, message = FALSE}
-joined_dataset <- joined_dataset %>%
-  filter(states != "USA")
+**Overdose_Deaths i**  = β0 + β1\*​(less24years_highschool_2022​) + β2​\*(years25_LessHighSchool_2022​) +  +β3 \* ​(years25_onlyhighschool_2022​) + β4\*​(years25_bachelor_2022​)+ β5\*​(years25_graduate_2022​)+ β6\*​(total_seizure_events​) + β7\*​(total_quantity_seized​) +ϵi​
 
-ggplot(joined_dataset, aes(x = `years25_total_bachelor+_2022`, y = overdose_rate)) +
-  geom_point(color = "blue") +
-  geom_smooth(method = "lm", se = FALSE, color = "red") +
-  labs(
-    title = "Relationship Between Bachelor's Degree or more Number and Quantity of Overdose",
-    x = "Number of people who have a Bachelor's Degree or more",
-    y = "Overdose Rate (per 100,000)"
-  )
-```
-### Seizure and Education
-Doing the same but with the seizure data set
-```{r, message = FALSE}
-joined_dataset <- joined_dataset %>%
-  filter(states != "USA")
+Where:
 
-ggplot(joined_dataset, aes(x = years25_graduate_2022, y = total_quantity_seized)) +
-  geom_point(color = "blue") +
-  geom_smooth(method = "lm", se = FALSE, color = "red") +
-  labs(
-    title = "Relationship Between Graduate's Degree Number and the Quantity Seized",
-    x = "Number of graduate's Degree",
-    y = "Total quantity of fentanyl seized"
-  )
-```
-Comments: 
-```{r, message = FALSE}
-joined_dataset <- joined_dataset %>%
-  filter(states != "USA")
+-   **β0** : Intercept.
 
-ggplot(joined_dataset, aes(x = years25_bachelor_2022, y = total_quantity_seized)) +
-  geom_point(color = "blue") +
-  geom_smooth(method = "lm", se = FALSE, color = "red") +
-  labs(
-    title = "Relationship Between Bachelor's Degree Number and the Quantity Seized",
-    x = "Number of bechelor's Degree",
-    y = "Total quantity of fentanyl seized"
-  )
-```
-Comments:
-(we do not keep)
-```{r, message = FALSE}
-joined_dataset <- joined_dataset %>%
-  filter(states != "USA")
+-   **𝛽1,𝛽2,𝛽3, 𝛽4**: Coefficients associated with explanatory variables.
 
-ggplot(joined_dataset, aes(x = `years25_total_bachelor+_2022`, y = total_quantity_seized)) +
-  geom_point(color = "blue") +
-  geom_smooth(method = "lm", se = FALSE, color = "red") +
-  labs(
-    title = "Relationship Between Number of Bachelor's Degree or more and Quantity of Overdose",
-    x = "Number of bechelor's Degree or more",
-    y = "Total quantity of fentanyl seized"
-  )
+-   **𝜀𝑖:** Random error term, assumed to follow a normal distribution 𝑁(0,𝜎2)
+
+**Test Hypothesis**
+
+-   [Null hypothesis (𝐻0) :]{.underline}
+
+    -   **𝐻0 :**  **𝛽𝑖 = 0**
+
+    -   There is no statistically significant relationship between the independent variable 𝑋𝑖 and the number of overdose deaths. This means that 𝑋𝑖 does not explain variations in overdose deaths.
+
+-   [Alternative hypothesis (𝐻1):]{.underline}
+
+    -   **𝐻1 :**    **𝛽𝑖 ≠ 0**
+
+    -   There is a statistically significant relationship between the independent variable 𝑋𝑖 and the number of overdose deaths. In other words, 𝑋𝑖 helps explain variations in overdose deaths
+
+**Our Assumptions:**
+
+The multiple linear regression model take into consideration some assumptions:
+
+1.  The relationship between the independent variables (education levels) and the dependent variable (overdose deaths) is [*linear*]{.underline}.
+
+2.  Observations (states) are [*independent*]{.underline}, it corresponds to the index i.
+
+3.  The variance of the residuals is [*constant*]{.underline} across all of the independent variables.
+
+4.  The residuals of the model are [*normally distributed*]{.underline}.
+
+5.  The independent variables (specially education levels) are n[*ot highly*]{.underline}
+
+    [*correlated*]{.underline} with each other. We proceed to the verification using the Variance 
+
+    Inflation Factor (VIF).
+
+**Estimation of the multiple linear regression linear:**
+
+We will use the ordinary least squares (OLS) method to estimate the model coefficients.
+
+```{r}
+library(knitr)
+library(kableExtra)
+# Extract the model
+summary_table <- summary(regression_model)$coefficients
+colnames(summary_table) <- c("Estimate", "Std. Error", "t-value", "Pr(>|t|)")
+
+# We convert the table into HTML format using kableExtra
+kable(summary_table, format = "html", align = "c", caption = "Results of the linear regression") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                full_width = F, font_size = 14) %>%
+  column_spec(1, bold = T, color = "black", background = "#f7f7f7") %>%
+  row_spec(0, bold = T, background = "#D3D3D3") 
 ```
-Note that we won't perfom the same graph using the total number of seizure events as it doesn't give information on the consumption of fentanyl. In fact, a state X could have a muwhc lower total number of seizure events than state Y and still have a higher quantity seized than state Y.
+
+### II. Model fit analysis
+
+1.  **Verification of our assumptions**
+
+```{=html}
+<!-- -->
+```
+a)  Linearity:
+
+In order to check the linearity, we will plot residuals against predicted values:
