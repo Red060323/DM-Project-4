@@ -903,9 +903,9 @@ plotly_plot_1
 
     The graph shows a positive relationship between the total quantity of fentanyl seized and the number of overdose deaths per 100,000 people. This suggests that states with higher quantities of fentanyl seized tend to have higher overdose death rates. This implies that using drug seizure as a proxy of drug consumption is valid. <br><br> To test the degree to which this conclusion is true, we perform a summary of the linear model between the total number of overdose deaths and the total quantity seized of fentanyl:
 
-    ```{r}
-    library(broom)
-    ```
+```{r}
+library(broom)
+```
 
 ```{r, message =FALSE, echoes=FALSE}
 # Fit the linear model
@@ -1189,19 +1189,49 @@ kable(
 
 The goal of this section is to conduct a cross-regional analysis as part of our descriptive analysis. Early in our research, we noticed that drug seizure data was available for only a few states, primarily those located along the U.S. borders. This observation hints at potential trafficking patterns, such as border states (e.g., Texas, California, Arizona) serving as primary entry points for drugs illegally transported into the country.
 
-This analysis aims to identify regions with the highest overdose rates, education levels, and drug seizure quantities, and to investigate possible reasons behind these patterns. For instance, we anticipate the southern region might exhibit higher drug consumption and overdose rates due to its proximity to South America, particularly Mexico, where fentanyl distribution increased significantly in 2022, the year of our analysis. Similarly, the eastern region may show elevated education metrics, given the presence of many top universities. Lastly, we will test our broader hypothesis: whether regions with lower education levels are disproportionately impacted by the opioid crisis across the four defined regions.
+This analysis aims to identify regions with the highest overdose rates, education levels, and drug seizure quantities, and to investigate possible reasons behind these patterns. For instance, we anticipate the southern region might exhibit higher drug consumption and overdose rates due to its proximity to South America, particularly Mexico, where fentanyl distribution increased significantly in 2022, the year of our analysis. Similarly, the northern region may show elevated education metrics, given the presence of many top universities. Lastly, we will test our broader hypothesis: whether regions with lower education levels are disproportionately impacted by the opioid crisis across the four defined regions.
 
-A- <u>Define regions clearly</u> <br><br> I will first replicate the joined_data set but replacing the variable `states` by a variable `region` that will contain four observations: **north**, **south**, **west**, **midwest**.
+A- <u>Differences between regions</u> <br><br> We are first replicating `joined_dataset` but adding the variable `region` that will contain four observations: **north**, **south**, **west**, **midwest**.
 
 ```{r}
-joined_dataset_region <- joined_dataset %>%
+# Create a data frame to show states included in each region
+region_states <- data.frame(
+  Region = c("West", "North", "South", "Midwest"),
+  States = c(
+    "WA, CA, AZ, MT",
+    "ME, NY, MA",
+    "TX, LA, FL, GA, MD",
+    "MI, IL"
+  )
+)
+
+# Display the table using kable
+library(kableExtra)
+
+region_states %>%
+  kable(
+    format = "html",
+    caption = "States Included in Each Region",
+    align = "c"
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    full_width = TRUE,
+    font_size = 14
+  )
+```
+
+The **regions** were <u>defined</u> to group states <u>based on geographic proximity and commonalities in socioeconomic or trafficking trends</u>. For instance, the **southern region** includes border states like *Texas and Florida* due to their location near <u>international drug trafficking routes</u>, especially from Mexico and South America. The **western region** groups states such as *California and Arizona*, which are significant <u>entry points for drugs through the Pacific coast and Mexican border</u>. The **northern region** includes *Maine and New York*, reflecting their <u>economic connections and educational institutions</u>' influence. Finally, the **midwest region** includes *Illinois and Michigan*, focusing on their <u>central location and socioeconomic characteristics</u> compared to other regions.
+
+```{r}
+joined_dataset_region_1 <- joined_dataset_modified %>%
   mutate(region = case_when(
     states %in% c("WA", "CA", "AZ", "MT") ~ "West",
     states %in% c("ME", "NY", "MA") ~ "North",
     states %in% c("TX", "LA", "FL", "GA", "MD") ~ "South",
     states %in% c("MI", "IL") ~ "Midwest"
   ))
-joined_dataset_region <- joined_dataset_region %>%
+joined_dataset_region <- joined_dataset_region_1 %>%
   select(states, region, everything())
 
 joined_dataset_region <- joined_dataset_region %>%
@@ -1209,13 +1239,246 @@ joined_dataset_region <- joined_dataset_region %>%
   summarise(
     total_seizure_events = sum(total_seizure_events, na.rm = TRUE),
     total_quantity_seized = sum(total_quantity_seized, na.rm = TRUE),
-    total_events_proportion = mean(total_events_proportion, na.rm = TRUE),
-    total_quantity_proportion = mean(total_quantity_proportion, na.rm = TRUE)
+    less24years_highschool_2022 = sum(less24years_highschool_2022, na.rm = TRUE),
+    years25_LessHighSchool_2022 = sum(years25_LessHighSchool_2022, na.rm = TRUE),
+    years25_atleast_highschool_2022 = sum(years25_atleast_highschool_2022, na.rm = TRUE),
+    years25_onlyhighschool_2022 = sum(years25_onlyhighschool_2022, na.rm = TRUE),
+    years25_bachelorormore_2022 = sum(years25_bachelorormore_2022, na.rm = TRUE),
+    years25_bachelor_2022 = sum(years25_bachelor_2022, na.rm = TRUE),
+    years25_graduate_2022 = sum(years25_graduate_2022, na.rm = TRUE),
+    overdose_rate = mean(overdose_rate, na.rm = TRUE),
+    overdose_deaths = sum(overdose_deaths, na.rm = TRUE)
+  )
+
+# Create a kable table for joined_dataset_region
+joined_dataset_region %>%
+  kable(
+    format = "html",
+    caption = "Regional Summary Table",
+    align = "c"
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    full_width = TRUE,
+    font_size = 14
   )
 ```
 
-(to be continued)
+-   **Comments:**
 
+    As this table is quite short, we can already observe the state of the situation for each metric in each region. First, let's analyze **midwest region**, if we consider `total_quantity_seized`, `years25_bachelor_2022` (that is the number of people that got a bachelor degree or more) and `overdose_deaths`, we notice that the region has the second lowest quantity of fentanyl seized of all the four region and has the lowest number of lethal overdoses per 100000 inhabitants, but more surprising, she has the lowest number of bachelor. Infact, following our hypothesis, knowing that the city has a low rate of lethal overdoses, we could expect the level of education to be quite high, well, with respect to the other regions it is not the case, just reading the data. However, it is important to point out that this region contains only 2 states, while the others contain between 3 and 5 states, and that could explain, for proportionality reasons, that this state has the lowest number of bachelor. For the same variables but, this time, regarding the **north region**, which contains 3 states, it has an extremely low quantity of fentanyl seized (the lowest) and the second lowest number of deaths by overdoses per 100000 inhabitants, the level of education though is the second highest, really close to the one of the west region, that aligns quite well with our primary hipothesis. It is interesting to see that the midwest region has a 95.43% higher quantity of fentanyl seized than the northern region but it has a 29.47% lower number of lethal overdoses, it suggests, contrary to what we showed in the previous part, that those two are not going so much in the same direction. The **southern region** is the one showing the second highest quantity of fentanyl seized in 2022 (around 915 lbs), however, the highest number of overdose deaths (20676), concerning the level of education, the latest is significantly higher than for the other regions. In one hand, it doesn't support our hypothesis, because we observe a high education and a high level of fentanyl overdoses deaths and on the other hand, here, again we could justify these really high rates by the fact that the southern region is the one that contains the most states, so we have more data, implying higher quantities, <u>underlying why the correlation analysis is indispensable</u>. Finally, the **west region** has the highest quantity of fentanyl seized, while it is not the region containing the most states, it has the second highest number of overdose deaths after the southern region and the level of education is similar to the one of the north region, as we said before, around 69536049. 
+<br><br>
+We are now implementing an hypothesis testing accross regions using ANOVA summary, Tukey's test table, and boxplots. <br>
+A- <u>Overdose</u>
+```{r}
+# Perform ANOVA to test for differences in overdose rates across regions
+anova_overdose <- aov(overdose_deaths ~ region, data = joined_dataset_region_1)
+
+library(kableExtra)
+
+# Create a summary table for ANOVA results
+anova_overdose_summary <- summary(anova_overdose)[[1]]
+anova_overdose_df <- data.frame(
+  Source = rownames(anova_overdose_summary),
+  Df = anova_overdose_summary[, "Df"],
+  `Sum Sq` = anova_overdose_summary[, "Sum Sq"],
+  `Mean Sq` = anova_overdose_summary[, "Mean Sq"],
+  `F value` = anova_overdose_summary[, "F value"],
+  `Pr(>F)` = anova_overdose_summary[, "Pr(>F)"]
+)
+
+# Display ANOVA results in a table
+anova_overdose_df %>%
+  kbl(format = "html", caption = "ANOVA Results: Overdose Rates by Region") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = TRUE)
+
+# Create a summary table for Tukey HSD test results
+tukey_overdose <- TukeyHSD(anova_overdose)
+tukey_overdose_df <- as.data.frame(tukey_overdose$region)
+tukey_overdose_df$Comparison <- rownames(tukey_overdose_df)
+
+# Rename columns for better readability
+colnames(tukey_overdose_df) <- c("Difference", "Lower Bound", "Upper Bound", "p-value", "Comparison")
+
+# Display Tukey HSD results in a table
+tukey_overdose_df %>%
+  select(Comparison, everything()) %>%
+  kbl(format = "html", caption = "Tukey HSD Results: Overdose Rates by Region") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = TRUE)
+
+# Create a boxplot for visual representation
+ggplot(joined_dataset_region_1, aes(x = region, y = overdose_deaths)) +
+  geom_boxplot(fill = "skyblue", color = "darkblue") +
+  labs(
+    title = "Overdose Rates by Region",
+    x = "Region",
+    y = "Overdose Rate (per 100,000)"
+  ) +
+  theme_minimal()
+
+```
+B- <u>Seizures</u>
+```{r}
+# Create a summary table for ANOVA results
+anova_seizures <- aov(total_quantity_seized ~ region, data = joined_dataset_region_1)
+
+anova_seizures_summary <- summary(anova_seizures)[[1]]
+anova_seizures_df <- data.frame(
+  Source = rownames(anova_seizures_summary),
+  Df = anova_seizures_summary[, "Df"],
+  `Sum Sq` = anova_seizures_summary[, "Sum Sq"],
+  `Mean Sq` = anova_seizures_summary[, "Mean Sq"],
+  `F value` = anova_seizures_summary[, "F value"],
+  `Pr(>F)` = anova_seizures_summary[, "Pr(>F)"]
+)
+
+# Display ANOVA table
+anova_seizures_df %>%
+  kbl(format = "html", caption = "ANOVA Results: Total Quantity of Fentanyl Seized by Region") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = TRUE)
+
+# Create a summary table for Tukey test results
+tukey_seizures <- TukeyHSD(anova_seizures)
+tukey_seizures_df <- as.data.frame(tukey_seizures$region)
+tukey_seizures_df$Comparison <- rownames(tukey_seizures_df)
+
+# Rename columns for better readability
+colnames(tukey_seizures_df) <- c("Difference", "Lower Bound", "Upper Bound", "p-value", "Comparison")
+
+# Display Tukey test table
+tukey_seizures_df %>%
+  select(Comparison, everything()) %>%
+  kbl(format = "html", caption = "Tukey HSD Results: Total Quantity of Fentanyl Seized by Region") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = TRUE)
+
+# Display the boxplot
+ggplot(joined_dataset_region_1, aes(x = region, y = total_quantity_seized)) +
+  geom_boxplot(fill = "lightgreen", color = "darkgreen") +
+  labs(
+    title = "Total Fentanyl Seized by Region",
+    x = "Region",
+    y = "Total Quantity Seized"
+  ) +
+  theme_minimal()
+
+```
+C- <u>Education</u>
+```{r}
+# Create a summary table for ANOVA results
+anova_table <- summary(aov(years25_bachelor_2022 ~ region, data = joined_dataset_region_1))[[1]]
+anova_df <- data.frame(
+  Source = rownames(anova_table),
+  Df = anova_table[, "Df"],
+  `Sum Sq` = anova_table[, "Sum Sq"],
+  `Mean Sq` = anova_table[, "Mean Sq"],
+  `F value` = anova_table[, "F value"],
+  `Pr(>F)` = anova_table[, "Pr(>F)"]
+)
+
+# Display ANOVA table
+anova_df %>%
+  kbl(format = "html", caption = "ANOVA Results for Education Across Regions") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = TRUE)
+
+# Create a summary table for Tukey test results
+tukey_test <- TukeyHSD(aov(years25_bachelor_2022 ~ region, data = joined_dataset_region_1))
+tukey_df <- as.data.frame(tukey_test$region)
+tukey_df$Comparison <- rownames(tukey_df)
+
+# Rename columns for better readability
+colnames(tukey_df) <- c("Difference", "Lower Bound", "Upper Bound", "p-value", "Comparison")
+
+# Display Tukey test table
+tukey_df %>%
+  select(Comparison, everything()) %>%
+  kbl(format = "html", caption = "Tukey HSD Results for Education Across Regions") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = TRUE)
+
+# Visualize the differences using a boxplot
+ggplot(joined_dataset_region_1, aes(x = region, y = years25_bachelor_2022)) +
+  geom_boxplot(fill = "#FFDAB9", color = "#D3D3D3" ) +
+  labs(
+    title = "Bachelor's Degree Holders by Region",
+    x = "Region",
+    y = "Percentage of Bachelor's Degree Holders"
+  ) +
+  theme_minimal()
+
+```
+
+B- <u>Correlation Analysis Accross States</u> <br><br>
+In this section of the regional trend analysis, we are using the Pearson Correlation to establish the relationship between our variables. <br><br>
+We analyzed the correlation between `total_quantity_seized` and `overdose_deaths` and `years25_bachelor_2022`.
+```{r}
+# Select numeric variables for correlation
+correl_dataset <- joined_dataset_region %>%
+  select(overdose_deaths, total_quantity_seized, years25_bachelor_2022)
+
+# Compute the correlation matrix
+correlation_matrix <- cor(correl_dataset, use = "complete.obs", method = "pearson")
+
+# Display the correlation matrix
+correlation_table <- as.data.frame(as.table(correlation_matrix))
+
+# Ensure Var1 and Var2 are characters, not factors
+correlation_table <- correlation_table %>%
+  mutate(
+    Var1 = as.character(Var1),
+    Var2 = as.character(Var2)
+  )
+
+# Filter out rows where Var1 equals Var2
+correlation_table <- correlation_table %>%
+  filter(Var1 != Var2) %>%
+  # Remove duplicate pairs
+  rowwise() %>%
+  filter(Var1 < Var2) %>%
+  ungroup()
+
+kable(correlation_table, format = "html", caption = "Correlation Matrix") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    full_width = TRUE,
+    font_size = 14
+  )
+```
+```{r, message=FALSE}
+library(reshape2)
+
+# Reshape correlation matrix for plotting
+correlation_melt <- melt(correlation_matrix)
+
+# Plot heatmap
+ggplot(correlation_melt, aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) +
+  labs(
+    title = "Correlation Heatmap",
+    x = "Variables",
+    y = "Variables",
+    fill = "Correlation"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+-   **Comments:**
+
+    The two representations displaying correlations between our variables show three quite absurd contradictions. The first one is a **strong positive correlation between `overdose_deaths` and `years25_bachelor_2022` (0.88)**. This indicates that regions with a higher proportion of individuals holding at least a bachelor's degree also tend to have higher overdose death rates. While surprising, this could suggest that higher education is not a protective factor against overdoses or that other confounding factors, such as urbanization, play a role. The second one is a **moderate positive correlation between `overdose_deaths` and `total_quantity_seized` (0.37)**. This suggests that regions with higher drug seizure quantities also experience more overdose deaths. This relationship is expected and was already showed in the previous part of the descriptive analysis, as higher quantities of seized drugs could indicate higher levels of drug trafficking or consumption in these regions. Finally, a **weak positive correlation** between total_quantity_seized and years25_bachelor_2022 (0.09)**. This time it suggests little to no relationship between the quantity of drugs seized and the education level. This may imply that education levels do not directly influence the volume of drug trafficking or enforcement activities. We investigated about this weird conclusions (as we found something different when we plot the regressions of those relationship in graphical representations)
+    <br><br>
+    In the previous part of our analysis, we found a negative relationship between the number of bachelor's degrees and overdose deaths in the regression model. The fact that this is contradictory with the present results of the correlation could be due to differences in the number of states within each region. For example, regions like the South and West, which include more states, may have a stronger influence on the overall trend compared to smaller regions like the North and Midwest.
+    <br><br>
+    By comparing both approaches, we can conclude that the negative relationship in the regression model might be partially driven by regional aggregation and averaging effects, as well as differences in the number of contributing states per region, as said before. The correlation analysis provides complementary perspective, focusing on the raw associations across variables. 
+
+```{r, message=FALSE}
+# Pairwise scatter plots
+library(GGally)
+
+ggpairs(correl_dataset, title = "Pairwise Correlations Between Variables")
+```
+-   **Comments:**
+
+    This pairwise correlation plot provides a deeper visual understanding of the relationships between the variables. We notice that while the correlation between the number of bachelor's degrees and overdose deaths is strong and positive (0.88), the scatterplot reveals **non-linear patterns, suggesting the relationship might not be perfectly linear across all regions**. Similarly, the relationship between total fentanyl seized and overdose deaths shows a moderate positive correlation (0.37), but the scatterplot indicates **variability and potential outliers influencing the trend**. Interestingly, the relationship between total fentanyl seized and the number of bachelor's degrees (0.086) is very weak, and the scatterplot highlights a lack of clear pattern, which aligns with the correlation coefficient. This suggests that fentanyl seizures are not strongly associated with education levels when aggregating the states into regions, possibly due to factors like trafficking routes or law enforcement focus, which might not directly depend on the regional educational background.<br><br>
+  
 ## Predictive Analysis
 
 ### I. Regression model and estimations:
@@ -1676,11 +1939,13 @@ ggplot(plot_data, aes(x = overdose_deaths, fill = group)) +
   theme(legend.title = element_blank(), legend.position = "top")
 
 ```
+
 -   **Comments:**
 
     The density graph clearly illustrates the differences in the distribution of overdose deaths between the "Low" and "Very High" groups. The distribution of deaths for the "Low" group is wider and shows a higher mean (4723) than that of the "Very High" group (1572). However, superposition of the distributions indicates high variability in both groups.
 
 2.  Adjustement measures:
+
 ```{r}
 # Extract the model summary
 model_summary <- summary(regression_model)
@@ -1718,8 +1983,9 @@ kable(summary_table, format = "html", align = "c", caption = "Model Fit Statisti
   row_spec(0, bold = T, background = "#D3D3D3")
 
 ```
+
 -   **Comments:**
 
     The statistics of our regression model show a high residual standard error (2187.4975), indicating significant variability in the model's predictions. The multiple R-squared of 0.7298 suggests that 72.98% of the variance in overdose deaths is explained by the included independent variables. However, the R-squared adjustment, at 0.4146, reveals that after adjusting for the number of predictors, the explanatory power of the model is reduced, thus highlighting a potential over-fitting or low robustness. The F-statistic analysis (2.32 with 7 and 6 degrees of freedom) is not significant (p = 0.1629627), indicating that the model as a whole does not significantly explain the variance in deaths. These results suggest that, although some relationships may exist, the model is not entirely reliable and may require improvements, such as the inclusion of additional variables.
-    
+
 ## Conclusion
