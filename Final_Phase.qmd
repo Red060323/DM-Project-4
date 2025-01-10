@@ -12,11 +12,16 @@ header-includes:
   - \usepackage{longtable}
   - \usepackage{booktabs}
   - \usepackage{array}
+filters:
+  - _extensions/andrewheiss/wordcount/wordcount.lua
+wordcount:
+  display: true   
+  output: document  
 ---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
-
 
 ```{r}
 #| message: false
@@ -26,6 +31,7 @@ library(vroom)
 library(ggplot2)
 theme_set(theme_bw())
 ```
+
 ```{r}
 #| message: false
 drug_seizure <- vroom(here("drug-consumption.csv"))
@@ -40,6 +46,7 @@ lethal_overdoses <- vroom(here("lethal-overdoses.csv"))
 #| message: false
 education <- vroom(here("education.csv"))
 ```
+
 ```{r}
 #| message: false
 library(tidyverse)
@@ -79,7 +86,6 @@ caption {
 }
 </style>
 ```
-
 ```{r}
 # Rename specific columns and remove column 12
 education_clean <- education_clean %>%
@@ -137,7 +143,6 @@ drug_seizure <- drug_seizure %>%
   rename(states = `Area of Responsibility`) 
 
 ```
-
 
 ```{r}
 # Extract unique values from the 'states' column of the drug seizures data set
@@ -250,26 +255,28 @@ joined_dataset <- drug_seizure_clean %>%
 
 ## Research Question
 
-The **fentanyl overdose crisis in the United States** represents a major \uline{public health emergency}, exacerbated by economic, social, and cultural factors. In **2022**, this crisis reached a \uline{critical point} and thus caught our attention for this research. That year, the United States recorded approximately 67,325 deaths due to fentanyl overdoses, accounting for nearly 70% of all overdose deaths that year, according to Watson.ch. At the same time, a significant increase in fentanyl production in China and its distribution by Mexican cartels worsened the crisis. This drug, often mixed with other substances to reduce costs, saw its consumption skyrocket. At the same time, post-COVID effects, such as depression and increased drug experimentation, worsened the crisis, particularly in poorer states, which were affected by high inflation and growing economic insecurity. 
+The **fentanyl overdose crisis in the United States** represents a major \uline{public health emergency}, exacerbated by economic, social, and cultural factors. In **2022**, this crisis reached a \uline{critical point} and thus caught our attention for this research. That year, the United States recorded approximately 67,325 deaths due to fentanyl overdoses, accounting for nearly 70% of all overdose deaths that year, according to Watson.ch. At the same time, a significant increase in fentanyl production in China and its distribution by Mexican cartels worsened the crisis. This drug, often mixed with other substances to reduce costs, saw its consumption skyrocket. At the same time, post-COVID effects, such as depression and increased drug experimentation, worsened the crisis, particularly in poorer states, which were affected by high inflation and growing economic insecurity.
 
 Focusing our analysis on 2022 not only highlights the pivotal nature of this year in the fentanyl crisis but also ensures **consistent metrics across all states**. This approach allows for \uline{clearer and more straightforward} interpretation of results, avoiding the complexities introduced by multi-year, time-based effects. By centering our research on this critical year, we aim to uncover meaningful patterns and relationships that might otherwise be hiden In examining these patterns, **education** levels emerge as a potentially \uline{key factor in understanding regional disparities in this crisis}. Low education levels may limit access to information, increase risky behaviors, and reduce socio-economic opportunities, thus increasing the vulnerability of populations to fentanyl use and overdoses. According to Neuralword.com, about 35% of Americans aged 25 and older held a college degree in 2022, highlighting a potential educational gap influencing exposure to this crisis.
 
-Thus, our **research question** is formulated as follows: *“How do fentanyl overdose rates vary with education levels across different states of the USA?”* More specifically, *“What is the relationship between education levels and fatal overdoses, and what regional disparities emerge from this?”* 
+Thus, our **research question** is formulated as follows: *“How do fentanyl overdose rates vary with education levels across different states of the USA?”* More specifically, *“What is the relationship between education levels and fatal overdoses, and what regional disparities emerge from this?”*
 
 Our objectives for this study would be:
 
-- To analyze the relationship between education levels and fentanyl overdose rates in different states as well as the relationship between education levels and fentanyl consumption in different states.
-- To statistically examine regional disparities, that is, whether regions with lower education levels are disproportionately affected by this crisis or not. 
-- To discuss contextual factors, such as economic conditions or access to healthcare, that could influence this relationship.
+-   To analyze the relationship between education levels and fentanyl overdose rates in different states as well as the relationship between education levels and fentanyl consumption in different states.
+-   To statistically examine regional disparities, that is, whether regions with lower education levels are disproportionately affected by this crisis or not.
+-   To discuss contextual factors, such as economic conditions or access to healthcare, that could influence this relationship.
 
 To this end, we have formulated the following hypotheses:
 
-- **States with lower education levels have higher rates of fentanyl overdoses and seizures.** 
-- **The negative relationship between fentanyl seizures and overdoses is stronger in less-educated states.**
-- **Contextual factors, such as economic conditions or public health infrastructure, modulate this relationship across regions.**
+-   **States with lower education levels have higher rates of fentanyl overdoses and seizures.**
+-   **The negative relationship between fentanyl seizures and overdoses is stronger in less-educated states.**
+-   **Contextual factors, such as economic conditions or public health infrastructure, modulate this relationship across regions.**
 
 ## Description of Data Sets
+
 ### I. Drug Seizures in the United States
+
 ```{r, warning = FALSE}
 data_description_1 <- data.frame(
   Description = c(
@@ -287,7 +294,9 @@ kable(data_description_1) %>%
   column_spec(2, width = "20em") %>%
   row_spec(0, bold = TRUE, color = "black")
 ```
+
 ### II. Drug overdose mortality in the United States
+
 ```{r,warning = FALSE}
 data_description_2 <- data.frame(
   Description = c(
@@ -305,7 +314,9 @@ kable(data_description_2) %>%
   column_spec(2, width = "20em") %>%
   row_spec(0, bold = TRUE, color = "black")
 ```
-### III. Education Levels in the United States 
+
+### III. Education Levels in the United States
+
 ```{r,warning = FALSE}
 data_description_3 <- data.frame(
   Description = c(
@@ -332,7 +343,7 @@ kable(data_description_3, booktabs = TRUE, longtable = TRUE) %>%
 
 ## Descriptive Analysis
 
-### I. General statsitics
+### I. General statistics
 
 The script processes the `joined_dataset` variable by first renaming key variables to improve clarity: `total_events` becomes `total_seizure_events`, `total_quantity` becomes `total_quantity_seized`, `RATE` becomes `overdose_rate`, and `DEATHS` becomes `overdose_deaths`. We also get rid of the observation "USA" as it is the national aggregate observation.
 
@@ -348,9 +359,10 @@ joined_dataset <- joined_dataset %>%
   filter(states != "USA")
 ```
 
-Once the data is filtered, we begin with an exhaustive descriptive analysis that includes all relevant statistical measures, enabling in-depth interpretation.
+Once the data is filtered, we begin with an exhaustive descriptive analysis enabling in-depth interpretation.
 
 **Detailed Descriptive Analysis Table:**
+
 ```{r, warning = FALSE}
 #| message: false
 #| cache: false
@@ -360,7 +372,7 @@ library(dplyr)
 library(knitr)
 library(kableExtra)
 
-# Detailed Table of the Descriptive Analysis (we eliminate character variable 'State)
+# Detailed Table of the Descriptive Analysis
 numeric_dataset <- joined_dataset %>%
   select_if(is.numeric)  
 summary_table <- describe(numeric_dataset) %>%
@@ -386,19 +398,19 @@ kable(filtered_summary_table, longtable = TRUE) %>%
 
 -   For the variable **`total_quantity_seized`**, the *mean* is **1049.91**, indicating a relatively high average quantity of drugs seized in the USA. The *standard deviation* of **2455.75** suggests great variability in seizures, showing that some seizures are much larger than the average. The *median*, at **16.01**, is significantly lower than the mean, highlighting an asymmetrical distribution, as evidenced by the *skew* of **1.96**, showing a strong positive asymmetry. This implies that there are several very large seizures pulling the average upwards. *Kurtosis*, at **2.27**, shows a sharp distribution with heavy tails, suggesting that extreme values are frequent.
 
--   Concerning education, the variable **`years25_atleast_highschool_2022`** has a *mean* of **90020214.71** with a *standard deviation* of **2825202.67**, indicating that the majority of individuals have completed at least high school with moderate variability. The *median* is **90193698.50**, which is close to the mean, and the *skew* of **0.15** indicates an almost symmetrical distribution. For **`years25_bachelor_2022`**, the *mean* is **21452697.71** with a *standard deviation* of **3492597.44**, indicating fewer individuals have attained a bachelor's degree compared to high school. The *median* is **21547985**, which is close to the mean, suggesting a relatively symmetrical distribution. The *kurtosis* of **-0.99** suggests a slightly flatter distribution than normal. For **`years25_graduate_2022`**, the *mean* is **14607153.71**, and the *standard deviation* of **3268291.44** reflects moderate variability. The *skew* of **0.79** highlights a concentration of lower values, indicating that higher-level diplomas are less common.
+-   Concerning education, the variable **`years25_atleast_highschool_2022`** has a *mean* of **90020214.71** with a *standard deviation* of **2825202.67**, indicating that the majority of individuals have completed at least high school with moderate variability. The *median* is **90193698.50**, which is close to the mean, and the *skew* of **0.15** indicates an almost symmetrical distribution. For **`years25_bachelor_2022`**, the *mean* is **21452697.71** with a *standard deviation* of **3492597.44**, indicating fewer individuals have attained a bachelor's degree compared to high school. The *median* is **21547985**, which is close to the mean, suggesting a relatively symmetrical distribution. The *kurtosis* of **-0.99** suggests a slightly flatter distribution than normal. For **`years25_graduate_2022`**, the *mean* is **14607153.71**, and the *standard deviation* of **3268291.44** reflects moderate variability. The *skew* of **0.79** highlights a concentration of lower values, indicating that higher-level diplomas are less common. A comparison between the averages for **`years25_bachelor_2022`** and **`years25_graduate_2022`** shows a gradual decrease in the number of people reaching higher levels of education. This reflects the typical pyramid structure of education levels in a society.
 
--   Finally the variable **`overdose_deaths`**, with a *mean* of **3841.29** indicates an average number of fatal overdoses. The *standard deviation* of **2859.11** highlights a high variability in overdose deaths, which is very significant and alarming. The *median* is **2706.00**, notably lower than the mean, indicating a strong positive asymetry, as indicated by the *skew* of **1.04**. This suggests that most values are relatively low, but a few extreme cases of overdose deaths pull the mean upwards. The *kurtosis* of **0.29** suggests a flatter distribution compared to a normal distribution, meaning the extremes are less frequent than initially described. This may call for targeted interventions to treat extreme cases and better understand the factors underlying these deaths.
+-   Finally the variable **`overdose_deaths`**, with a *mean* of **3841.29** indicates an average number of fatal overdoses. The *standard deviation* of **2859.11** highlights a high variability in overdose deaths, which is very significant and alarming. The *median* is **2706.00**, notably lower than the mean, indicating a strong positive asymetry, as indicated by the *skew* of **1.04**. This suggests that most values are relatively low, but a few extreme cases of overdose deaths pull the mean upwards. The relatively low *kurtosis*, about **0.29**, indicates a platykurtic distribution, suggesting more consistent variability in overdose deaths than in a normal distribution. This could imply that the overdose problem is widespread rather than concentrated in a few extreme areas.
 
 ### II. Median focused
 
-So, let's take a closer look at the statistical measure of the median. To analyze the alignment between education, overdose, and seizure statuses, a composite metric was created for each category (education, overdose, and seizures) by calculating the row-wise mean of relevant variables. States were then classified as "success" or "failure" based on whether their composite score was above or below the national median. Here, the variables are classified as follow: 
+So, let's take a closer look at the statistical measure of the median. To analyze the alignment between education, overdose, and seizure statuses, a composite metric was created for each category (education, overdose, and seizures) by calculating the row-wise mean of relevant variables. States were then classified as "success" or "failure" based on whether their composite score was above or below the national median. Here, the variables are classified as follow:
 
-- **Education Variables:** classified as "success" if their values are above the national median and "failure" otherwise.
+-   **Education Variables:** classified as "success" if their values are above the national median and "failure" otherwise.
 
-- **Overdose Variables:** classified as "success" if their values are below the national median and "failure" otherwise.
+-   **Overdose Variables:** classified as "success" if their values are below the national median and "failure" otherwise.
 
-- **Drug Seizure Variables:** classified as "success" if their values are below the national median and "failure" otherwise.
+-   **Drug Seizure Variables:** classified as "success" if their values are below the national median and "failure" otherwise.
 
 ```{r, warning = FALSE}
 # Create composite scores and classify success/failure
@@ -481,6 +493,7 @@ kable(head(filtered_success_status, 3),
   column_spec(2:4, width = "11em") %>%  
   row_spec(0, bold = TRUE, color = "black")
 ```
+
 *Note that for displaying reasons, only a few variables of each metric appear in this table, but they were all taken into account when building the summary that follows. For example, the "Overdose" Category (or metric) includes both `overdose_rate` and `overdose_deaths` variables, not just `overdose_deaths` as in the previous table.*
 
 The counts of "success" and "failure" are then summarized for each category.
@@ -532,11 +545,11 @@ ggplot(plot_data, aes(x = Category, y = Count, fill = Status)) +
 -   **Comments:**
 
     The high proportion of "success" in the Drug Seizure category suggests that most states have relatively low drug seizure quantities and events compared to the mean. This could indicate effective enforcement or that fentanyl distribution is not uniform across states. However, the correlation between drug seizures and overdoses needs further exploration—states with fewer seizures might still have high overdose rates due to the potency and availability of fentanyl.
-    
+
     The Education category shows an almost equal distribution of "success" and "failure." This highlights significant variability in education levels across states, with some performing above the mean and others falling behind. For the research question, this variation in education levels could be crucial for understanding differences in overdose rates. States with higher education success may have populations better equipped to avoid risky behaviors or access preventive measures, potentially correlating with lower overdose rates.
-    
-    The Overdose category shows a higher proportion of "failure," indicating that many states have overdose rates or deaths exceeding the mean. This finding emphasizes that fentanyl overdoses remain a widespread problem, disproportionately affecting certain states. It suggests that efforts to mitigate overdoses need to focus on a majority of states where fentanyl use has escalated. 
-    
+
+    The Overdose category shows a higher proportion of "failure," indicating that many states have overdose rates or deaths exceeding the mean. This finding emphasizes that fentanyl overdoses remain a widespread problem, disproportionately affecting certain states. It suggests that efforts to mitigate overdoses need to focus on a majority of states where fentanyl use has escalated.
+
     The variability observed across education and overdose categories suggests a potential relationship between the two. States with high education failure (e.g., lower levels of high school or college attainment) might correspond to those with higher overdose failure, reflecting possible socioeconomic and educational disparities contributing to the fentanyl crisis. Conversely, states with education success might demonstrates better public health outcomes, including lower overdose rates. We will developp this later.
 
 ### IV. Relational Data Visualization
@@ -548,6 +561,7 @@ Examining the relationship between the quantity of fentanyl seized and the numbe
 The first step was to fit a linear regression model to assess the relationship between the total quantity of fentanyl seized (total_quantity_seized) and the number of overdose deaths (overdose_deaths) using the joined_dataset. The regression model predicts overdose deaths based on the quantity seized. In our scatterplot, data points represent individual states.
 
 **Relationship Between Total Quantity Seized and Quantity of Overdose:**
+
 ```{r, warning= FALSE, message =FALSE, echoes=FALSE, fig.align='center'}
 library(ggplot2)
 library(plotly)
@@ -581,8 +595,8 @@ interactive_plot_1
 
 -   **Comments:**
 
-    The graph shows a positive relationship between the total quantity of fentanyl seized and the number of overdose deaths per 100,000 people. This suggests that states with higher quantities of fentanyl seized tend to have higher overdose death rates. This implies that using drug seizure as a proxy of drug consumption is valid. 
-    
+    The graph shows a positive relationship between the total quantity of fentanyl seized and the number of overdose deaths per 100,000 people. This suggests that states with higher quantities of fentanyl seized tend to have higher overdose death rates. This implies that using drug seizure as a proxy of drug consumption is valid.
+
     To test the degree to which this conclusion is true, we perform a summary of the linear model between the total number of overdose deaths and the total quantity seized of fentanyl:
 
 ```{r}
@@ -623,7 +637,7 @@ kable(summary_table,
   row_spec(0, bold = TRUE, color = "black")  
 ```
 
-The regression analysis reveals a **statistically significant positive relationship** between the quantity of fentanyl seized and overdose deaths. The coefficient for fentanyl seizures is 0.6547 (p = 0.03635), indicating that for every unit increase in fentanyl seized, the overdose death rate increases by 0.6547 per 100,000 people. The model explains 31.6% of the variance in overdose deaths (R-squared = 0.3162), highlighting a moderate relationship, though a significant amount of variation remains unexplained. While the model is statistically significant overall (F-statistic p = 0.03635), the residual standard error of 2461 indicates considerable variability in the data. **These findings suggest that higher fentanyl seizures may reflect greater fentanyl circulation, contributing to more overdose deaths.** 
+The regression analysis reveals a **statistically significant positive relationship** between the quantity of fentanyl seized and overdose deaths. The coefficient for fentanyl seizures is 0.6547 (p = 0.03635), indicating that for every unit increase in fentanyl seized, the overdose death rate increases by 0.6547 per 100,000 people. The model explains 31.6% of the variance in overdose deaths (R-squared = 0.3162), highlighting a moderate relationship, though a significant amount of variation remains unexplained. While the model is statistically significant overall (F-statistic p = 0.03635), the residual standard error of 2461 indicates considerable variability in the data. **These findings suggest that higher fentanyl seizures may reflect greater fentanyl circulation, contributing to more overdose deaths.**
 
 B- \uline{Education and Overdoses}
 
@@ -662,6 +676,7 @@ kable(data,
 ```
 
 **Relationship Between Bachelor's Degree Number and Quantity of Overdose:**
+
 ```{r, warning= FALSE, fig.align='center'}
 # Fit the regression model
 model <- lm(overdose_deaths ~ years25_bachelor_2022, data = joined_dataset)
@@ -728,11 +743,12 @@ kable(summary_table,
   row_spec(0, bold = TRUE, color = "black")  
 ```
 
-The regression analysis indicates a **weak negative relationship** between **the number of bachelor’s degrees and overdose deaths**, as shown by the coefficient of -0.0001758, suggesting that for every increase of 10,000 bachelor’s degrees, the overdose death rate decreases by 1.758 per 100,000 people. However, this relationship is not statistically significant at the 0.05 threshold, with a p-value of 0.098. The model explains only about 21% of the variance in overdose deaths (R-squared = 0.2104), highlighting its limited explanatory power. Additionally, the residual standard error of 2644 suggests substantial variability in the data. These results indicate that additional factors beyond education levels, such as economic or healthcare-related variables, likely play a significant role in influencing overdose deaths, and their inclusion may improve the model's effectiveness. 
+The regression analysis indicates a **weak negative relationship** between **the number of bachelor’s degrees and overdose deaths**, as shown by the coefficient of -0.0001758, suggesting that for every increase of 10,000 bachelor’s degrees, the overdose death rate decreases by 1.758 per 100,000 people. However, this relationship is not statistically significant at the 0.05 threshold, with a p-value of 0.098. The model explains only about 21% of the variance in overdose deaths (R-squared = 0.2104), highlighting its limited explanatory power. Additionally, the residual standard error of 2644 suggests substantial variability in the data. These results indicate that additional factors beyond education levels, such as economic or healthcare-related variables, likely play a significant role in influencing overdose deaths, and their inclusion may improve the model's effectiveness.
 
 *An example of a graphical representation showing absurd conclusions for our analysis:*
 
 **Relationship Between the Number of Bachelor's Degree or more and Quantity of Overdose:**
+
 ```{r, warning= FALSE, fig.align='center'}
 joined_dataset_modified <- joined_dataset 
 
@@ -769,12 +785,12 @@ interactive_plot_3
 
 -   **Comments:**
 
-    This graphical representation is particularly interesting to keep in our analysis for several reasons. First, it reveals a **positive relationship** between **the number of people who have completed at least a bachelor's degree and the quantity of overdose deaths**. In other words, the graph suggests that higher levels of education, contrary to expectations, are associated with higher numbers of overdose deaths. This contradicts our hypothesis, which is that education should help reduce such outcomes. Keeping this graph allows us to highlight and discuss unexpected findings, potentially pointing to other factors that may confound the relationship between education and overdose outcomes. Additionally, it shows the importance of a multidimensional approach to understanding these variables. Making some research allows us to find potential reasons for this result. The three main ones are the following: 
-    
+    This graphical representation is particularly interesting to keep in our analysis for several reasons. First, it reveals a **positive relationship** between **the number of people who have completed at least a bachelor's degree and the quantity of overdose deaths**. In other words, the graph suggests that higher levels of education, contrary to expectations, are associated with higher numbers of overdose deaths. This contradicts our hypothesis, which is that education should help reduce such outcomes. Keeping this graph allows us to highlight and discuss unexpected findings, potentially pointing to other factors that may confound the relationship between education and overdose outcomes. Additionally, it shows the importance of a multidimensional approach to understanding these variables. Making some research allows us to find potential reasons for this result. The three main ones are the following:
+
     1- Regions with higher levels of education may also have higher income levels, which could increase access to opioids and other drugs, leading to higher rates of overdose deaths.
-    
-    2- While better education may improve healthcare access, it could also inadvertently increase access to prescription opioids, which are a significant driver of overdose deaths. 
-    
+
+    2- While better education may improve healthcare access, it could also inadvertently increase access to prescription opioids, which are a significant driver of overdose deaths.
+
     3- The positive relationship might be influenced by outliers or specific states where the dynamics between education and overdose deaths differ significantly from the national trend. Here, California, Florida are pushing the regression line up.
 
 *We got the same results when using the variable `overdose_rate` instead of `overdose_deaths`.*
@@ -810,7 +826,9 @@ kable(data,
   column_spec(3, width = "20em") %>% 
   row_spec(0, bold = TRUE, color = "black")  # Header row styled
 ```
+
 **Relationship Between Bachelor's Degree Number and the Quantity Seized:**
+
 ```{r, warning= FALSE, fig.align='center'}
 # Fit the regression model
 model <- lm(total_quantity_seized ~ years25_bachelor_2022, data = joined_dataset)
@@ -969,16 +987,17 @@ kable(filtered_joined_dataset_region,
 -   **Comments:**
 
     As this table is quite short, we can already observe the situation for each metric in each region. First, let's analyze **midwest region**, if we consider `total_quantity_seized`, `years25_bachelor_2022` (that is the number of people that got a bachelor degree or more) and `overdose_deaths`, we notice that the region has the second lowest quantity of fentanyl seized of all the four region and has the lowest number of lethal overdoses per 100000 inhabitants, but more surprising, she has the lowest number of bachelor. Infact, following our hypothesis, knowing that the city has a low rate of lethal overdoses, we could expect the level of education to be quite high, well, with respect to the other regions it is not the case (only by reading the data, not from a statistical point of view). However, it is important to point out that this region contains only 2 states, while the others contain between 3 and 5 states, and that could explain, for proportionality reasons, that this state has the lowest number of bachelor.
-    
-    For the same variables but, this time, regarding the **north region**, which contains 3 states, it has an extremely low quantity of fentanyl seized (the lowest) and the second lowest number of deaths by overdoses per 100000 inhabitants, the level of education though is the second highest, really close to the one of the west region, that aligns quite well with our primary hipothesis. It is interesting to see that the midwest region has a 95.43% higher quantity of fentanyl seized than the northern region but it has a 29.47% lower number of lethal overdoses, it suggests, contrary to what we showed in the previous part, that those two are not going so much in the same direction. 
-    
+
+    For the same variables but, this time, regarding the **north region**, which contains 3 states, it has an extremely low quantity of fentanyl seized (the lowest) and the second lowest number of deaths by overdoses per 100000 inhabitants, the level of education though is the second highest, really close to the one of the west region, that aligns quite well with our primary hipothesis. It is interesting to see that the midwest region has a 95.43% higher quantity of fentanyl seized than the northern region but it has a 29.47% lower number of lethal overdoses, it suggests, contrary to what we showed in the previous part, that those two are not going so much in the same direction.
+
     The **southern region** is the one showing the second highest quantity of fentanyl seized in 2022 (around 915 lbs), however, the highest number of overdose deaths (20676), concerning the level of education, the latest is significantly higher than for the other regions. In one hand, it doesn't support our hypothesis, because we observe a high education and a high level of fentanyl overdoses deaths and on the other hand, here, again we could justify these really high rates by the fact that the southern region is the one that contains the most states, so we have more data, implying higher quantities, underlying why the correlation analysis is indispensable.
-    
+
     Finally, the **west region** has the highest quantity of fentanyl seized, while it is not the region containing the most states, it has the second highest number of overdose deaths after the southern region and the level of education is similar to the one of the north region, as we said before, around 69536049.
 
 **We are now implementing an hypothesis testing accross regions using ANOVA summary, Tukey's test table, and boxplots.**
 
 A- \uline{Overdose}
+
 ```{r, warning=FALSE, fig.align='center'}
 # Perform ANOVA to test for differences in overdose rates across regions
 anova_overdose <- aov(overdose_deaths ~ region, data = joined_dataset_region_1)
@@ -1039,8 +1058,9 @@ ggplot(joined_dataset_region_1, aes(x = region, y = overdose_deaths)) +
 -   **Comments:**
 
     The high p-values in the ANOVA results indicate that regional factors do not significantly explain the differences in overdose rates. Similarly, the Tukey HSD test showed no meaningful pairwise differences between regions, with confidence intervals including zero for all comparisons. The boxplot further supports these findings, as the distributions of overdose rates overlap considerably across regions, with no region showing distinctly higher or lower values. **These results suggest that overdose rates might not be primarily driven by regional characteristics.**
-    
+
 B- \uline{Seizures}
+
 ```{r, fig.align='center', warning=FALSE}
 # Create a summary table for ANOVA results
 anova_seizures <- aov(total_quantity_seized ~ region, data = joined_dataset_region_1)
@@ -1099,6 +1119,7 @@ ggplot(joined_dataset_region_1, aes(x = region, y = total_quantity_seized)) +
     The analysis of fentanyl seizures across regions reveals interesting, though statistically non-significant, patterns. The ANOVA results (F(3,10) = 2.04, p = 0.172) suggest that there are no statistically significant differences in the total quantity of fentanyl seized across the four regions at the 5% significance level. However, the boxplot indicates that the \uline{West region exhibits the highest median and variability in the total fentanyl seizures compared to other regions}, suggesting that it might play a significant role as a primary entry or transit point for illicit drug trafficking. The Tukey HSD post-hoc test further supports the lack of statistically significant differences between region pairs.
 
 C- \uline{Education}
+
 ```{r fig.align='center', warning=FALSE}
 # Create a summary table for ANOVA results
 anova_table <- summary(aov(years25_bachelor_2022 ~ region, data = joined_dataset_region_1))[[1]]
@@ -1148,17 +1169,17 @@ ggplot(joined_dataset_region_1, aes(x = region, y = years25_bachelor_2022)) +
   ) +
   theme_minimal()
 ```
+
 -   **Comments:**
 
     The analysis of bachelor's degree holders across regions, as shown in the ANOVA table, indicates no statistically significant differences between regions (p = 0.414). This suggests that the proportion of bachelor's degree holders does not vary significantly across the Midwest, North, South, and West regions. The boxplot further supports this conclusion, as the distribution of bachelor's degree holders appears to overlap among regions, though the West region shows a wider range in bachelor's degree holders compared to others. The Tukey HSD test results confirm this lack of statistical significance, with all pairwise comparisons having high p-values. For instance, comparisons such as West-North (p = 0.734) and South-North (p = 0.967) indicate no meaningful differences in the proportion of bachelor's degree holders.
-    
-    
+
 B- \uline{Correlation Analysis Accross States}
 
-In this section of the regional trend analysis, we are using the Pearson Correlation to establish the relationship between our variables. 
+In this section of the regional trend analysis, we are using the Pearson Correlation to establish the relationship between our variables.
 
-We analyzed the correlation between `total_quantity_seized` and `overdose_deaths` and `years25_
-bachelor_2022`.
+We analyzed the correlation between `total_quantity_seized` and `overdose_deaths` and `years25_ bachelor_2022`.
+
 ```{r, warning=FALSE, fig.align='center'}
 # Select numeric variables for correlation
 correl_dataset <- joined_dataset_region %>%
@@ -1195,6 +1216,7 @@ kable(correlation_table,
   column_spec(3, width = "8em") %>%             
   row_spec(0, bold = TRUE, color = "black")      
 ```
+
 ```{r, message=FALSE}
 library(reshape2)
 
@@ -1214,12 +1236,13 @@ ggplot(correlation_melt, aes(Var1, Var2, fill = value)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
 -   **Comments:**
 
     The two representations displaying correlations between our variables show three quite absurd contradictions. The first one is a **strong positive correlation between `overdose_deaths` and `years25_bachelor_2022` (0.88)**. This indicates that regions with a higher proportion of individuals holding at least a bachelor's degree also tend to have higher overdose death rates. While surprising, this could suggest that higher education is not a protective factor against overdoses or that other confounding factors, such as urbanization, play a role. The second one is a **moderate positive correlation between `overdose_deaths` and `total_quantity_seized` (0.37)**. This suggests that regions with higher drug seizure quantities also experience more overdose deaths. This relationship is expected and was already showed in the previous part of the descriptive analysis, as higher quantities of seized drugs could indicate higher levels of drug trafficking or consumption in these regions. Finally, a **weak positive correlation** between total_quantity_seized and years25_bachelor_2022 (0.09). This time it suggests little to no relationship between the quantity of drugs seized and the education level. This may imply that education levels do not directly influence the volume of drug trafficking. We investigated about this weird conclusions (as we found something different when we plot the regressions of those relationship in graphical representations at the country level, that is across states and not across regions).
-    
+
     In the previous part of our analysis, we found a negative relationship between the number of bachelor's degrees and overdose deaths in the regression model. The fact that this is contradictory with the present results of the correlation could be due to differences in the number of states within each region. For example, regions like the South and West, which include more states, may have a stronger influence on the overall trend compared to smaller regions like the North and Midwest.
-    
+
     By comparing both approaches, we can conclude that the negative relationship in the regression model might be partially driven by regional aggregation and averaging effects, as well as differences in the number of contributing states per region, as said before. The correlation analysis provides complementary perspective.
 
 ```{r, message=FALSE, fig.align='center'}
@@ -1228,10 +1251,11 @@ library(GGally)
 
 ggpairs(correl_dataset, title = "Pairwise Correlations Between Variables")
 ```
+
 -   **Comments:**
 
     This pairwise correlation plot provides a deeper visual understanding of the relationships between the variables. We notice that while the correlation between the number of bachelor's degrees and overdose deaths is strong and positive (0.88), the scatterplot reveals **non-linear patterns, suggesting the relationship might not be perfectly linear across all regions**. Similarly, the relationship between total fentanyl seized and overdose deaths shows a moderate positive correlation (0.37), but the scatterplot indicates **variability and potential outliers influencing the trend**. Interestingly, the relationship between total fentanyl seized and the number of bachelor's degrees (0.086) is very weak, and the scatterplot highlights a lack of clear pattern, which aligns with the correlation coefficient. **This shows that fentanyl seizures are not strongly associated with education levels when aggregating the states into regions, possibly due to factors like trafficking routes, which might not directly depend on the regional educational background.**
-  
+
 ## Predictive Analysis
 
 ### I. Regression model and estimations
@@ -1244,13 +1268,17 @@ Since our reasearch question is causal, we'll need to characterize and predict t
 
 -   [**Independent variables (X):**]{.underline}
 
-**- X1 = Years25_LessHighSchool_2022 :**This variable is expected to have a positive relationship with overdose deaths, as lower education levels may correlate with higher risks of substance misuse and limited access to preventive measures.
+**- X1 = Years25_LessHighSchool_2022 :** Its expected to have a positive relationship with overdose deaths, as lower education levels may correlate with higher risks of substance misuse.
 
-**- X2 = Years25_Bachelor_2022 :** Its supposed to have a negative relationship with overdose deaths, since higher education levels may correlate with better socioeconomic status and health outcomes.
+Same for **- X2 = years25_LessHighSchool_2022:** and **X3 = years25_onlyhighschool_2022**​
 
-**- X3 = Years25_Graduate_2022 :**This variable is also expected to have a negative relationship with overdose deaths, reflecting the potential protective effects of higher education.
+**- X4 = ​years25_bachelor_2022​** supposed to have a negative relationship with overdose deaths, since higher education levels may correlate with better socioeconomic status and health outcomes.
 
-**- X4 = Total_Quantity_Seized :**It’s supposed to have positive relationship with overdose deaths, since high quantity seized means that  there is a high consumption of drugs, which yields to higher deathsq
+**- X5 = years25_graduate_2022** also expected to have a negative relationship with overdose deaths, reflecting the potential protective effects of higher education.
+
+**- X6 = total_seizure_events​** We expect to have positive relationship since higher number of seizure events imply higher number of people consume drugs so it could potentially leads to overdoses
+
+**- X7 = Total_Quantity_Seized** It’s supposed to have positive relationship with overdose deaths, since high quantity seized means that there is a high consumption of drugs, which yields to higher deaths
 
 Hence, we get a *multiple linear regression model* such as:
 
@@ -1269,29 +1297,27 @@ regression_model <- lm(overdose_deaths ~ less24years_highschool_2022 +
 tidy(regression_model) 
 ```
 
-**Overdose_Deaths i** = β0 + β1\*​(less24years_highschool_2022​) + β2​\*(years25_LessHighSchool_2022​) +  +β3 \* ​(years25_onlyhighschool_2022​) + β4\*​(years25_bachelor_2022​)+ β5\*​(years25_graduate_2022​)+ β6\*​(total_seizure_events​) + β7\*​(total_quantity_seized​) +ϵi​
+**Overdose_Deaths i** =$\beta0$ + $\beta1$\*​(less24years_highschool_2022​) + $\beta2$​\*(years25_LessHighSchool_2022​) +$\beta3$​ \* ​(years25_onlyhighschool_2022​) + $\beta4$​\*​(years25_bachelor_2022​)+$\beta5$​\*​(years25_graduate_2022​)+ $\beta6$​\*​(total_seizure_events​) + $\beta7$​\*​(total_quantity_seized​)+$\epsilon𝑖$​
 
 Where:
 
--   **β0** : Intercept.
-
--   **𝛽1,𝛽2,𝛽3, 𝛽4**: Coefficients associated with explanatory variables.
-
--   **ε𝑖:** Random error term, assumed to follow a normal distribution 𝑁(0,𝜎2)
+-   $\beta1$ : Intercept.
+-   $\beta1$,$\beta2$... $\beta7$: Coefficients associated with explanatory variables.
+-   $\epsilon 𝑖$: Random error term, assumed to follow a normal distribution 𝑁(0,𝜎2)
 
 **Test Hypothesis**
 
--   [Null hypothesis (𝐻0) :]{.underline}
+-   [Null hypothesis (H0) :]{.underline}
 
-    -   **𝐻0 :**  **𝛽𝑖 = 0**
+    -   **H0 :** $\beta0$ = 0
 
     -   There is no statistically significant relationship between the independent variable 𝑋𝑖 and the number of overdose deaths. This means that 𝑋𝑖 does not explain variations in overdose deaths.
 
--   [Alternative hypothesis (𝐻1):]{.underline}
+-   [Alternative hypothesis (H1):]{.underline}
 
-    -   **𝐻1 :**    **𝛽𝑖 ≠ 0**
+    -   **H1 :**    $\beta𝑖$ ≠ 0
 
-    -   There is a statistically significant relationship between the independent variable 𝑋𝑖 and the number of overdose deaths. In other words, 𝑋𝑖 helps explain variations in overdose deaths
+    -   There is a statistically significant relationship between the independent variable 𝑋𝑖 and the number of overdose deaths. In other words, X𝑖 helps explain variations in overdose deaths
 
 **Our Assumptions:**
 
@@ -1307,7 +1333,7 @@ The multiple linear regression model take into consideration some assumptions:
 
 5.  The independent variables (specially education levels) are n[*ot highly*]{.underline}
 
-    [*correlated*]{.underline} with each other. We proceed to the verification using the Variance Inflation Factor (VIF).
+    [*correlated*]{.underline} with each other.
 
 **Estimation of the multiple linear regression linear:**
 
@@ -1338,37 +1364,35 @@ kable(summary_table,
 
     First, let’s analyze the statistical significance of the estimated coefficients\
 
-    \- The **intercept** coefficient estimates **β0 = 7982.457** reflects a positive value, suggesting that when all independent variables are zero,  the number  of overdose deaths would be 7982. However, since p=0.558, this indicates that the intercept is not significant,  which make sense since it  is unlikely that variables  like education would be zero all simultaneously in the real world
+    \- The **intercept** coefficient estimates $\beta0$ = 7982.457 reflects a positive value, suggesting that when all independent variables are zero,  the number  of overdose deaths would be 7982. However, since p=0.558, this indicates that the intercept is not significant,  which make sense since it  is unlikely that variables  like education would be zero all simultaneously in the real world
 
-    \- The variable **less24years_highschool_2022** has a coefficient of **β1 = 0.000177,** and a p-value **0.558507**. This explains that an additional person having completed high school implies an increase of 0.000177 in the number of overdose deaths.The effect of this variable on overdose deaths appears to be very small and statistically insignificant. Therefore, for this model, the proportion of young people under 24 without a high school diploma is not a major explanatory factor.
+    \- The variable **less24years_highschool_2022** has a coefficient of $\beta1$ = 0.000177, and a p-value **0.558507**. This explains that an additional person having completed high school implies an increase of 0.000177 in the number of overdose deaths.The effect of this variable on overdose deaths appears to be very small and statistically insignificant. Therefore, for this model, the proportion of young people under 24 without a high school diploma is not a major explanatory factor.
 
-    \- The coefficient of the variable **years25_LessHighSchool_2022** is **β2 = 0.0007049** with a p-value of **0.08** (close to significance at the 0.05 level). Indeed, the variable has a moderate positive effect on overdose deaths. Although not strictly significant, it indicates that high proportions of people aged 25 and over without a high school diploma are associated with an increase in overdose deaths.
+    \- The coefficient of the variable **years25_LessHighSchool_2022** is $\beta2$ = 0.0007049 with a p-value of **0.08** (close to significance at the 0.05 level). Indeed, the variable has a moderate positive effect on overdose deaths. Although not strictly significant, it indicates that high proportions of people aged 25 and over without a high school diploma are associated with an increase in overdose deaths.
 
-    \- The variable **years25_onlyhighschool_2022** has an estimate of **β3= -0.0003639** and a **p-value** of **0.33** (not significant). Hence, this variable shows a non-significant negative effect. This suggests that a higher proportion of young people with only a high school diploma (and nothing beyond) is associated with a slight reduction in overdose deaths, but this result is not conclusive.
+    \- The variable **years25_onlyhighschool_2022** has an estimate of $\beta3$= -0.0003639 and a **p-value** of **0.33** (not significant). Hence, this variable shows a non-significant negative effect. This suggests that a higher proportion of young people with only a high school diploma (and nothing beyond) is associated with a slight reduction in overdose deaths, but this result is not conclusive.
 
-    \- The estimate of **years25_bachelor_2022** is **β4** **= -0.0000808** with a **p-value : 0.49** (not significant). The proportions of people with a university degree (bachelor) also appear to have a non-significant negative effect on overdose deaths.This may be explained by the fact that higher education offers greater protection against overdose deaths, but the result remains weak.
+    \- The estimate of **years25_bachelor_2022** is $\beta4$= -0.0000808 with a **p-value : 0.49** (not significant). The proportions of people with a university degree (bachelor) also appear to have a non-significant negative effect on overdose deaths.This may be explained by the fact that higher education offers greater protection against overdose deaths, but the result remains weak.
 
-    \- The variable **years25_graduate_2022** has an estimate of **β5 = -0.0000497** and a p-value of **0.88** (not significant). The proportions of graduates have no significant effect on overdose deaths in this model.
+    \- The variable **years25_graduate_2022** has an estimate of $\beta5$ = -0.0000497 and a p-value of **0.88** (not significant). The proportions of graduates have no significant effect on overdose deaths in this model.
 
-    \- The estimate of the variable **total_seizure_events** is **β6 = -7.6052413** with p-value of **0.71** (not significant). Thus, the total number of seizure events appears to have a (small) negative effect on overdose deaths, but this result is not statistically significant. This means that efforts to seize substances have a limited impact on reducing deaths.
+    \- The estimate of the variable **total_seizure_events** is $\beta6$ = -7.6052413 with p-value of **0.71** (not significant). Thus, the total number of seizure events appears to have a (small) negative effect on overdose deaths, but this result is not statistically significant. Hence, fforts to seize substances have a limited impact on reducing deaths.
 
-    \- The variable **total_quantity_seized** has an estimate **β7 = 0.3498855** and a p-value of **0.80** (not significant). Thus, the total quantity of substances seized has a non-significant positive effect on overdose deaths.This reflects the fact that regions where more drugs are seized are also those where access to substances is higher with high overdose deaths, but this relationship remains non-significant.
+    \- The variable **total_quantity_seized** has an estimate $\beta7$ = 0.3498855 and a p-value of **0.80** (not significant). Thus, the total quantity of substances seized has a non-significant positive effect on overdose deaths.This reflects the fact that regions where more drugs are seized are also those where access to substances is higher with high overdose deaths, but this relationship remains non-significant.
 
 -   **ii) Interpretation of the main results:**
 
-    None of the model variables is statistically significant at the 0.05 level, although **years25_LessHigh
-    School_2022** approaches marginal significance.This could be due to small sample size or collinearity between explanatory variables.\
-    
-    Moreover, variables associated with higher levels of education (bachelor, graduate) have negative coefficients, which is consistent with the idea that education may play a protective role. It suggests that individuals with greater educational attainment tend to be more aware of the risk of fentanyl and drugs consumption. On the other hand, higher
-    educated people have better access to health care, and improved health literacy\
-    
+    None of the model variables is statistically significant at the 0.05 level, although **years25_LessHigh School_2022** approaches marginal significance.This could be due to small sample size or collinearity between explanatory variables.\
+
+    Moreover, variables associated with higher levels of education (bachelor, graduate) have negative coefficients, which is consistent with the idea that education may play a protective role. It suggests that individuals with greater educational attainment tend to be more aware of the risk of fentanyl and drugs consumption. On the other hand, higher educated people have better access to health care, and improved health literacy\
+
     Variables associated with lower levels of education (less than high school) tend to have positive coefficients, implying a potential association with higher overdose rates.
 
 ### II. Model fit analysis
 
-**1.  Verification of our assumptions**
+**1. Verification of our assumptions**
 
-It is essential to start by checking that the model respects the assumptions of multiple linear regression.
+We start by checking that the model respects the assumptions of multiple linear regression.
 
 -   [**a. Linearity**]{.underline}:
 
@@ -1402,9 +1426,9 @@ legend("topright", legend=c("Residuals", "Error estimated"), col=c("blue", "gree
 
     The green line shows a slightly non-linear trend (curved shape). This may indicate that the relationship between our independent variables and the overdoses deaths is [not strictly linear]{.underline}. (we might consider adding quadratic terms or transforming certain variables to capture this non-linearity)
 
-    Moreover, residuals appear to vary unequally around the red line. For instance, residuals on the left (low predicted values) and right (high predicted values) appear to be more dispersed. This could indicate [heteroscedasticity]{.underline}. (we will test it later )
+    Moreover, residuals appear to vary unequally around the red line. For instance, residuals on the left (low predicted values) and right (high predicted values) appear to be more dispersed. This could indicate [heteroscedasticity]{.underline}.
 
-Now we should correct the violation of the first assumption, one alternative is to use the spline since using quadratic form or even adding log in our model do not solve the linearity problem. Spline is very powerful and useful specially when we have complex relation between variables
+Now we should correct the violation of the first assumption, one alternative is to use the spline since quadratic form and log do not solve the linearity problem in our model. Spline is very powerful specially in complex relationships between variables.
 
 ```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE, fig.align='center'}
 library(splines)
@@ -1434,7 +1458,7 @@ lines(lowess(fitted_values, residuals), col = "green", lwd = 2)
 
 -   [**b. Independence**]{.underline}
 
-We should make sure that the residuals are not correlated in our model, thus, we use the Durbin-Watson test
+We make sure that the residuals are not correlated in our model, thus we use Durbin-Watson test:
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 library(lmtest)
@@ -1448,11 +1472,11 @@ cat("Thus, Residuals are not significantly autocorrelated.\n")
 
 -   **Comments:**
 
-    The Durbin-Watson test produced a DW statistic of **2.0858** with a p-value of **0.4365**. This indicates that we do not reject the null hypothesis of no autocorrelation of the residuals, as the p-value is well above the usual level of 0.05. In other words, there is no significant evidence of positive autocorrelation in the residuals of the regression model, suggesting that the observations are independent of each other.
+    Durbin-Watson test gives DW statistic of **2.0858** with a p-value of **0.4365**. So we do not reject the null hypothesis of no autocorrelation of the residuals, as p-value is well above the usual level of 0.05. There is no significant evidence of positive autocorrelation in the residuals of the regression model, suggesting that the observations are independent of each other.
 
 -   [**c. Homoscedasticity**]{.underline}
 
-Now, let' s verify whether the variance of the residuals is constant. Therefore, we test homoscedasticity using the Breusch-Pagan test
+Let's verify that the variance of residuals is constant. We use Breusch-Pagan test
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Test of Breusch Pagan
@@ -1464,11 +1488,11 @@ cat("The studentized Breusch-Pagan test result is BP =", round(bp_test_result$st
 
 -   **Comments:**
 
-    The Breusch-Pagan test shows a BP statistic of 4.9716 with 7 degrees of freedom and a p-value of 0.6634. It means that we do not reject the null hypothesis of homoscedasticity, since the p-value is above the usual 0.05 level. Thus, there is no significant evidence of heteroscedasticity in the residuals of the regression model, implying that the variance of the residuals is constant across the predicted values and that the model homoscedasticity assumption is respected.
+    Breusch-Pagan test shows a BP statistic of 4.9716 with 7 degrees of freedom and a p-value of 0.6634. Therefore, we do not reject the null hypothesis of homoscedasticity, since p-value is above the usual 0.05 level. There is no significant evidence of heteroscedasticity in the residuals of the regression model, implying that the variance of the residuals is constant across the predicted values and that the model homoscedasticity assumption is respected.
 
 -   [**d. Normality of distribution**]{.underline}
 
-In order to verify if the sample follows a normal distribution, we use the Shapiro-Wilk test. The test's null hypothesis is that the data are normally distributed (and the alternative hypothesis is the inverse).
+Now, we check the normality of distribution, using Shapiro-Wilk test. The test's null hypothesis is that the data are normally distributed (the alternative hypothesis is inverse).
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # We calculate the residuals
@@ -1482,9 +1506,9 @@ cat("Shapiro-Wilk normality test is W =", round(shapiro_test_result$statistic, 4
 
 -   **Comments:**
 
-    The Shapiro-Wilk test present a result of **0.90816** with a p-value of **0.1482**. This means that we do not reject the null hypothesis that the residuals follow a normal distribution, as the p-value is above the usual 0.05 level. After all, there is insufficient evidence to conclude that the residuals of the regression model are not normally distributed, suggesting that this hypothesis is met in our analysis.
+    The Shapiro-Wilk test present a result of **0.90816** with a p-value of **0.1482**. This means that we do not reject the null hypothesis that the residuals follow a normal distribution, as the p-value is above the usual 0.05 level. There is insufficient evidence to conclude that the residuals of the regression model are not normally distributed, suggesting that this hypothesis is met in our analysis.
 
-We can also draw QQ plot
+In order to visualize it, we draw QQ plot
 
 ```{r, fig.align='center'}
 #Graphic Q-Q
@@ -1492,13 +1516,15 @@ qqnorm(residuals)
 qqline(residuals, col = "red")  # we add a red line as a reference  
 ```
 
-or we can also visualize it this way:
+The graph shows a Q-Q Plot to check the normality of the data. The points generally follow the red diagonal line, indicating a close-to-normal distribution, although there are deviations at the ends (the tails), suggesting possible extreme values or a slight deviation from normality.
+
+The Density of the normalized residuals would be:
 
 ```{r, fig.align='center'}
 # we extract residuals in our model  
 residuals <- resid(regression_model)
 
-# we normalize residuals into. stardardized residuals
+# we normalize residuals into stardardized residuals
 std_residuals <- scale(residuals)
 
 # Density of standardized residuals
@@ -1527,17 +1553,20 @@ legend("topright",
        legend = c("Density of residuals", "Interval of confidence (95%)"), 
        col = c("black", "black"), 
        lty = c(1, 2), 
-       lwd = c(2, 1))
+       lwd = c(2, 1)) 
+
 
 ```
 
-**2.  Statistic Tests**
+Using the Density of Normalized Residuals test, the hypotheses can be evaluated. The results show that the coefficients of the explanatory variables are not significant (p \> 0.05) for most variables, indicating that the null hypothesis (H0) cannot be rejected. This implies that the independent variables do not show a statistically significant relationship with overdose deaths.
 
-Now that we have checked that the hypotheses have been met, we proceed with the statistical tests to assess the relationships between the variables.
+**2. Statistic Tests**
+
+Now that hypotheses have been met, we proceed with statistical tests to assess relationships between variables.
 
 -   [**Chi-squared test χ2**]{.underline}
 
-Since we have numerical variables, we should categorize them in order to use theChi test. Therefore, we will tranforme them using quartiles
+Since we have numerical variables, we should categorize them in order to use the Chi test, using quartiles.
 
 ```{r}
 # Categorization of years25_LessHighSchool_2022
@@ -1569,7 +1598,7 @@ joined_dataset$overdose_category <- cut(joined_dataset$overdose_deaths,
                                         include.lowest = TRUE)
 ```
 
-Once we categorized all our variables, we create contingency table to explore the relationship between each categorical variable and the overdoses_deaths variables through a contingency table.
+Once all variables categorized, we create contingency table to explore the relationship between each categorical variable and overdoses_deaths variables.
 
 ```{r, warning = FALSE}
 library(kableExtra)
@@ -1621,9 +1650,9 @@ results %>%
 
 -   **Comments:**
 
-    The results of the Chi-square tests indicate the absence of statistically significant relationships between levels of education (Less Highschool, Highschool, Bachelor, Graduate) and categories of overdose deaths in the different states. The p-values for all educational variables (0.229, 0.158, 0.205, and 0.517 respectively) are above the level of 0.05, suggesting that we cannot reject the null hypothesis H0 of independence between these variables. **In other words, differences in the proportions of overdose deaths don't vary significantly according to education levels.**
+    The results of the Chi-square tests indicate absence of statistically significant relationships between levels of education (Less Highschool, Highschool, Bachelor, Graduate) and categories of overdose deaths in the different states. The p-values for all educational variables (0.229, 0.158, 0.205, and 0.517 respectively) are above the level of 0.05, suggesting that we cannot reject the null hypothesis H0 of independence between these variables. **In other words, differences in the proportions of overdose deaths don't vary significantly according to education levels.**
 
-    Regarding the State variable, the Chi-square test shows a p-value of 0.327, also above the 0.05 significance level. Again, this means that there is no significant relationship between states and overdose categories. This observation could indicate that regional disparities are not sufficiently marked, or that differences in overdoses are influenced by other factors not included in this analysis.
+    Regarding the State variable, the Chi-square test shows a p-value of 0.327, also above the 0.05 significance level. Again, there is no significant relationship between states and overdose categories. This observation could indicate that regional disparities are not sufficiently marked, or that differences in overdoses are influenced by other factors not included in this analysis.
 
     These results raise questions about the real influence of education levels on the fentanyl overdose crisis. Although education is often perceived as a protective factor, these results do not show a statistically significant association. This could be explained by some factors such as limited data but also confounding factors, for instance, health access, economic conditions...
 
@@ -1631,11 +1660,11 @@ results %>%
 
 -   [**The Student test**]{.underline}
 
-Our second test is the Student test. This t-statistic test allows us to measure the difference between the observed mean and μ adjusted by standard deviation and sample size. Here, we do the 2 Sample t-test, which essentially compares overdose deaths and highschool category. Our hypothesis is as follows:
+Our second test, Student test, allows us to measure the difference between the observed mean and $\mu$ adjusted by standard deviation and sample size. Here, we do the 2 Sample t-test, which essentially compares overdose deaths and highschool category. Our hypothesis is as follows:
 
-**Null hypothesis**(H0): The means of overdose deaths for the “Low” and “Very High” groups (based on highschool_category) are equal. In other words, H0 μ Low = μ Very High
+**Null hypothesis**(H0): The means of overdose deaths for the “Low” and “Very High” groups (based on highschool_category) are equal. In other words, H0 $\mu$ Low = $\mu$ Very High
 
-**Alternative hypothesis**(H1): The means of overdose deaths for the two groups are different. Therefore: H1: μ Low **≠** μ Very High
+**Alternative hypothesis**(H1): The means of overdose deaths for the two groups are different. Therefore: H1: $\mu$ Low $≠$ $\mu$ Very High
 
 ```{r, warning=FALSE}
 library(kableExtra)
@@ -1663,9 +1692,9 @@ t_test_results %>%
 
 -   **Comments:**
 
-    Welch's t-test compares overdose deaths between the "Low" and "Very High" groups according to secondary education level. The results show a higher average for the "Low" group (4723 deaths) compared to the "Very High" group (1572 deaths). However, this difference is not statistically significant (p=0.2293), as also indicated by the wide confidence interval (-3171.294, 9473.294), which includes 0. This reflects high variability in the data and a limited sample, reducing the ability to detect a significant difference.
+    Welch's t-test compares overdose deaths between the "Low" and "Very High" groups according to secondary education level. The results show a higher average for the "Low" group (4723 deaths) compared to the "Very High" group (1572 deaths). However, this difference is not statistically significant (p=0.2293), as also indicated by the wide confidence interval (-3171.294, 9473.294), which includes 0. It reflects high variability in data and limited sample, reducing the ability to detect a significant difference.
 
-Graphically we get
+Graphically we get:
 
 ```{r, warning = FALSE, fig.align='center'}
 # Load necessary libraries
@@ -1708,9 +1737,9 @@ ggplot(plot_data, aes(x = overdose_deaths, fill = group)) +
 
 -   **Comments:**
 
-    The density graph clearly illustrates the differences in the distribution of overdose deaths between the "Low" and "Very High" groups. The distribution of deaths for the "Low" group is wider and shows a higher mean (4723) than that of the "Very High" group (1572). However, superposition of the distributions indicates high variability in both groups.
+    Density graph clearly illustrates differences in the distribution of overdose deaths between the "Low" and "Very High" groups. The distribution of deaths for the "Low" group is wider and shows a higher mean (4723) than that of the "Very High" group (1572). However, superposition of distributions indicates high variability in both groups
 
-**3.  Adjustement measures**
+**3. Adjustment measures**
 
 ```{r, warning=FALSE}
 # Extract the model summary
@@ -1762,6 +1791,6 @@ summary_table %>%
 
 -   **Comments:**
 
-    The statistics of our regression model show a high residual standard error (2187.4975), indicating significant variability in the model's predictions. The multiple R-squared of 0.7298 suggests that 72.98% of the variance in overdose deaths is explained by the included independent variables. However, the R-squared adjustment, at 0.4146, reveals that after adjusting for the number of predictors, the explanatory power of the model is reduced, thus highlighting a potential over-fitting or low robustness. The F-statistic analysis (2.32 with 7 and 6 degrees of freedom) is not significant (p = 0.1629627), indicating that the model as a whole does not significantly explain the variance in deaths. These results suggest that, although some relationships may exist, the model is not entirely reliable and may require improvements, such as the inclusion of additional variables.
+    The statistics of our regression model show a high residual standard error (2187.4975), indicating significant variability in the model's predictions. The multiple R-squared of 0.7298 suggests that 72.98% of the variance in overdose deaths is explained by the included independent variables. However, R-squared adjustment, at 0.4146, reveals that after adjusting for the number of predictors, explanatory power of the model is reduced, thus highlighting a potential over-fitting or low robustness. F-statistic analysis (2.32 with 7 and 6 degrees of freedom) is not significant (p = 0.1629627), indicating that the model as a whole does not significantly explain the variance in deaths. In other words, although some relationships may exist, the model is not entirely reliable and may require improvements, such as the inclusion of additional variables.
 
 ## Conclusion
