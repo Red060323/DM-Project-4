@@ -1181,7 +1181,7 @@ Where:
 
 -   $\beta1$ : Intercept.
 -   $\beta1$,$\beta2$... $\beta7$: Coefficients associated with explanatory variables.
--   $\epsilon 𝑖$: Random error term, assumed to follow a normal distribution 𝑁(0,𝜎2)
+-   $\epsilon 𝑖$: Random error term, assumed to follow a normal distribution N(0,$\sigma 2$)
 
 **Test Hypothesis**
 
@@ -1189,13 +1189,13 @@ Where:
 
     -   **H0 :** $\beta0$ = 0
 
-    -   There is no statistically significant relationship between the independent variable 𝑋𝑖 and the number of overdose deaths. This means that 𝑋𝑖 doesn't explain variations in overdose deaths.
+    -   There is no statistically significant relationship between the independent variable Xi and the number of overdose deaths. This means that Xi doesn't explain variations in overdose deaths.
 
 -   [Alternative hypothesis (H1):]{.underline}
 
     -   **H1 :**    $\beta𝑖$ ≠ 0
 
-    -   There is a statistically significant relationship between the independent variable 𝑋𝑖 and the number of overdose deaths. In other words, X𝑖 helps explain variations in overdose deaths
+    -   There is a statistically significant relationship between the independent variable Xi and the number of overdose deaths. In other words, Xi helps explain variations in overdose deaths
 
 **Our Assumptions:**
 
