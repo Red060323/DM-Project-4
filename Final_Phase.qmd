@@ -12,12 +12,23 @@ header-includes:
   - \usepackage{longtable}
   - \usepackage{booktabs}
   - \usepackage{array}
+  - \usepackage{fontspec}
+  - \setmainfont{Times New Roman}
+  - \usepackage{titling}
+  - \pretitle{\begin{center}\vspace*{\fill}\Huge\bfseries}
+  - \posttitle{\vspace{2cm} \\ \vspace{1cm} \Large \textit{Data Management and Programming} \vspace*{\fill}\end{center}}
 filters:
   - _extensions/andrewheiss/wordcount/wordcount.lua
 wordcount:
   display: true   
   output: document  
 ---
+
+\newpage
+
+\tableofcontents
+
+\newpage
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -393,7 +404,7 @@ kable(filtered_summary_table, longtable = TRUE) %>%
 
 ### 2. Median focused
 
-To analyze the alignment between education, overdose, and seizure statuses, a composite metric is created for each category (education, overdose, and seizures) by calculating the row-wise mean of relevant variables. States are then classified as "success" or "failure" based on whether their composite score was above or below the national median. Here, the variables are classified as follow:
+To analyze the alignment between education, overdose, and seizure statuses, a composite metric is created for each category (education, overdose, and seizures) by calculating the row-wise mean of relevant variables. States are then classified as "success" or "failure" based on whether their composite score was above or below the national median. Here, the variables are classified:
 
 -   **Education Variables:** classified as "success" if their values are above national median and "failure" otherwise.
 
@@ -1255,7 +1266,7 @@ kable(summary_table,
 
 ### 2. Model fit analysis
 
-**1. Verification of our assumptions**
+**- Verification of our assumptions**
 
 We start by checking that the model respects the assumptions of multiple linear regression.
 
@@ -1523,7 +1534,7 @@ results %>%
 
 -   [**The Student test**]{.underline}
 
-Our second test, Student test, allows us to measure the difference between the observed mean and $\mu$ adjusted by standard deviation and sample size. Here, we do the 2 Sample t-test, which essentially compares overdose deaths and highschool category. Our hypothesis is as follows:
+Our second test, Student test, allows us to measure the difference between the observed mean and $\mu$ adjusted by standard deviation and sample size. Here, we do the 2 Sample t-test, which essentially compares overdose deaths and highschool category. Our hypothesis is:
 
 **Null hypothesis**(H0): The means of overdose deaths for the “Low” and “Very High” groups (based on highschool_category) are equal. In other words, H0 $\mu$ Low = $\mu$ Very High
 
@@ -1600,7 +1611,7 @@ ggplot(plot_data, aes(x = overdose_deaths, fill = group)) +
 
 -   **Comments:**
 
-    Density graph clearly illustrates differences in the distribution of overdose deaths between the "Low" and "Very High" groups. The distribution of deaths for the "Low" group is wider and shows a higher mean (4723) than that of the "Very High" group (1572). However, superposition of distributions indicates high variability in both groups
+    Density graph clearly illustrates differences in the distribution of overdose deaths between the "Low" and "Very High" groups. The distribution of deaths for the "Low" group is wider and shows higher mean (4723) than that "Very High" group (1572). However, superposition of distributions indicates high variability in both groups
 
 **3. Adjustment measures**
 
@@ -1654,26 +1665,26 @@ summary_table %>%
 
 -   **Comments:**
 
-    The statistics of our regression model show a high residual standard error (2187.4975), indicating significant variability in the model's predictions. The multiple R-squared of 0.7298 suggests that 72.98% of the variance in overdose deaths is explained by the included independent variables. However, R-squared adjustment, at 0.4146, reveals that after adjusting for the number of predictors, explanatory power of the model is reduced, thus highlighting a potential over-fitting or low robustness. F-statistic analysis (2.32 with 7 and 6 degrees of freedom) isn't significant (p = 0.1629627), indicating that the model as a whole doesn't significantly explain the variance in deaths. In other words, although some relationships may exist, the model isn't entirely reliable and may require improvements, such as the inclusion of additional variables.
+    The statistics of our regression model show high residual standard error (2187.4975), indicating significant variability in  model's predictions. The multiple R-squared of 0.7298 suggests that 72.98% of the variance in overdose deaths is explained by the included independent variables. However, R-squared adjustment, at 0.4146, reveals that after adjusting for the number of predictors, explanatory power of the model is reduced, thus highlighting potential over-fitting or low robustness. F-statistic analysis (2.32 with 7 and 6 degrees of freedom) isn't significant (p = 0.1629627), indicating that the model doesn't significantly explain variance in deaths. Meaning that although some relationships may exist, the model isn't entirely reliable and require improvements, such as inclusion of additional variables.
 
 ## IV. Conclusion
 
-Our research aimed to explore the relationship between education levels and fentanyl overdose rates across U.S. states while examining regional disparities. We provide answers to our initial objectives as follows:
+Our research aimed to explore relationship between education levels and fentanyl overdose across U.S. states while examining regional disparities. We provide answers to our initial objectives:
 
 The findings indicate that \uline{states with lower education levels tend to experience higher fentanyl overdose rates}.
 
-First, the analysis of the **relationship between education levels and fentanyl overdose rates** reveals a weak negative correlation (correlation coefficient of around -0.2). States in the top quartile in terms of education (over 35% of adults with a bachelor's degree or higher) have an average overdose rate of 28.5 per 100,000 inhabitants, compared with 36.2 per 100,000 in states in the bottom quartile.
+First, the analysis of **relationship between education levels and fentanyl overdose rates** reveals weak negative correlation (correlation coefficient of around -0.2). States in the top quartile in terms of education (over 35% of adults with bachelor or higher) have an average overdose rate of 28.5 per 100,000 inhabitants, compared with 36.2 per 100,000 in states in bottom quartile.
 
-Moreover, examination of **regional disparities** shows that the Western region has the highest median and the greatest variability in total fentanyl seizures, suggesting its potential role as a major point of entry or transit for illicit drug trafficking.
+Moreover, examination of **regional disparities** shows that Western region has the highest median and variability in total fentanyl seizures, suggesting its potential role as major point of entry or transit for illicit drug trafficking.
 
-After reviewing our research objectives, we will now assess the extent to which our initial hypotheses have been confirmed by our results.
+After reviewing our research objectives, we'll now assess the extent to which our initial hypotheses have been confirmed by our results.
 
 The hypothesis that \uline{states with lower levels of education have higher rates of fentanyl overdose} and seizures is partially supported; however, the relationship is **weak and not statistically significant**.
 
-Additionally, the \uline{relationship between fentanyl seizures and overdoses isn't significantly more pronounced in less-educated states}, which **contradicts our initial hypothesis**.
+Additionally, the \uline{relationship between fentanyl seizures and overdoses isn't significantly more pronounced in less-educated states}, **contradicting our initial hypothesis**.
 
-Our study has several important limitations. \uline{Firstly}, we did not take into account certain potential confounding factors, notably access to healthcare, which could significantly influence overdose rates independently of education levels.
+Our study has several important limitations. \uline{Firstly}, we didn't take into account confounding factors, notably access to healthcare, that significantly influence overdose rates independently of education.
 
 \uline{Secondly}, the lack of complete data for the year 2022 limited the scope of our analysis, potentially reducing the reliability of our conclusions.
 
-\uline{Finally}, overdose statistics include various drugs, not just fentanyl, which may bias our specific understanding of the fentanyl crisis. To address these limitations, we **recommend** incorporating data on access to care in future analyses, extending the study period to obtain a more robust dataset, and seeking data sources that differentiate overdoses by drug type.
+\uline{Finally}, overdose statistics include various drugs, not just fentanyl, which  bias our specific understanding of fentanyl. To address these limitations, we **recommend** incorporating data on access to care in future analyses, extending study period to obtain robust dataset, and seeking data differentiating overdoses by drug type.
